@@ -30,7 +30,7 @@ public class App {
             System.out.println("running in local mode, 8080 only");
             app.setServerOptions(new ServerOptions()
                     .setMaxRequestSize(10485760*1000) // 10mB * 1000
-                    .setPort(8080)
+                    .setPort(8090)
             );
         }
 
@@ -38,103 +38,115 @@ public class App {
         app.decorator(new CorsHandler());
 
         // address to retrieve a list of all elections stored in the database
-        app.get("/getListElections", ctx -> {
+        app.post("/getElection", ctx -> {
+            String id = ctx.form("id").value();
+            //int id = ctx.path("id").intValue();
             ctx.setResponseType(MediaType.json);
 
             // gather results from the database
-            ResultSet results = Database.query("SELECT * from DigiData.election");
+            ResultSet results = Database.query("SELECT * from DigiData.election WHERE DigiData.election.id = "+id);
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-        app.get("/getNumQuestions", ctx -> {
+        app.post("/getNumQuestions", ctx -> {
+            String id = ctx.form("id").value();
             ctx.setResponseType(MediaType.json);
 
             // gather results from the database
             ResultSet results = Database.query("SELECT COUNT(question.id)\n" +
                     "FROM DigiData.question\n" +
                     "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n" +
-                    "WHERE DigiData.election.id = 1\n");
+                    "WHERE DigiData.election.id = "+id+"\n");
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-//        app.get("/getBoolQuestionType", ctx -> {
-//            ctx.setResponseType(MediaType.json);
-//
-//            // gather results from the database
-//            ResultSet results = Database.query("SELECT DigiData.question.id, DigiData.question.type\n" +
-//                    "FROM DigiData.question \n" +
-//                    "WHERE DigiData.question.id = 1\n");
-//            // return the results as json for easy processing on the frontend
-//            return Database.getJSONFromResultSet(results,"results");
-//        });
-//        app.get("/getNumQuestionOptions", ctx -> {
-//            ctx.setResponseType(MediaType.json);
-//
-//            // gather results from the database
-//            ResultSet results = Database.query("SELECT COUNT(DigiData.option.id)\n" +
-//                    "FROM DigiData.option\n" +
-//                    "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
-//                    "WHERE DigiData.question.id = 1\n");
-//            // return the results as json for easy processing on the frontend
-//            return Database.getJSONFromResultSet(results,"results");
-//        });
-//        app.get("/getListUsersVoted", ctx -> {
-//            ctx.setResponseType(MediaType.json);
-//
-//            // gather results from the database
-//            ResultSet results = Database.query("SELECT DigiData.user.id, DigiData.user.name\n" +
-//                    "FROM DigiData.user\n" +
-//                    "INNER JOIN DigiData.answer ON DigiData.answer.user_id = DigiData.user.id\n" +
-//                    "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n" +
-//                    "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
-//                    "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n" +
-//                    "WHERE DigiData.election.id = 1\n");
-//            // return the results as json for easy processing on the frontend
-//            return Database.getJSONFromResultSet(results,"results");
-//        });
-//        app.get("/getBoolUserVoted", ctx -> {
-//            ctx.setResponseType(MediaType.json);
-//
-//            // gather results from the database
-//            ResultSet results = Database.query("SELECT DigiData.user.id, DigiData.user.name\n" +
-//                    "FROM DigiData.user\n" +
-//                    "INNER JOIN DigiData.answer ON DigiData.answer.user_id = DigiData.user.id\n" +
-//                    "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n" +
-//                    "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
-//                    "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n" +
-//                    "WHERE DigiData.election.id = 1 AND DigiData.user.id = 1\n");
-//            // return the results as json for easy processing on the frontend
-//            return Database.getJSONFromResultSet(results,"results");
-//        });
-//        app.get("/getListAllAnswers", ctx -> {
-//            ctx.setResponseType(MediaType.json);
-//
-//            // gather results from the database
-//            ResultSet results = Database.query("SELECT DigiData.answer.id, DigiData.answer.user_id, DigiData.answer.option_id, DigiData.answer.response\n" +
-//                    "FROM DigiData.answer\n" +
-//                    "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n" +
-//                    "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
-//                    "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n" +
-//                    "WHERE DigiData.election.id = 1\n");
-//            // return the results as json for easy processing on the frontend
-//            return Database.getJSONFromResultSet(results,"results");
-//        });
-//        app.get("/getNumVotesForOption", ctx -> {
-//            ctx.setResponseType(MediaType.json);
-//
-//            // gather results from the database
-//            ResultSet results = Database.query("SELECT COUNT(DigiData.answer.id) FROM DigiData.answer INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id WHERE DigiData.option.id = 1");
-//            // return the results as json for easy processing on the frontend
-//            return Database.getJSONFromResultSet(results,"results");
-//        });
-//        app.get("/persistSubmitVote", ctx -> {
-//            ctx.setResponseType(MediaType.json);
-//
-//            // gather results from the database
-//            ResultSet results = Database.query("INSERT INTO `DigiData`.`answer` (`user_id`, `option_id`, `response`) VALUES ('1', '7', 'Y');");
-//            // return the results as json for easy processing on the frontend
-//            return Database.getJSONFromResultSet(results,"results");
-//        });
+        app.post("/getBoolQuestionType", ctx -> {
+            String qid = ctx.form("qid").value();
+            ctx.setResponseType(MediaType.json);
+            // gather results from the database
+            ResultSet results = Database.query("SELECT DigiData.question.id, DigiData.question.type\n" +
+                    "FROM DigiData.question \n" +
+                    "WHERE DigiData.question.id = "+qid+"\n");
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
+        app.post("/getNumQuestionOptions", ctx -> {
+            String qid = ctx.form("qid").value();
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query("SELECT COUNT(DigiData.option.id)\n" +
+                    "FROM DigiData.option\n" +
+                    "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
+                    "WHERE DigiData.question.id = "+qid+"\n");
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
+        app.post("/getListUsersVoted", ctx -> {
+            String id = ctx.form("id").value();
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query("SELECT DigiData.user.id, DigiData.user.name\n" +
+                    "FROM DigiData.user\n" +
+                    "INNER JOIN DigiData.answer ON DigiData.answer.user_id = DigiData.user.id\n" +
+                    "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n" +
+                    "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
+                    "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n" +
+                    "WHERE DigiData.election.id = "+id+"\n");
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
+        app.post("/getBoolUserVoted", ctx -> {
+            String id = ctx.form("id").value();
+            String uid = ctx.form("uid").value();
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query("SELECT DigiData.user.id, DigiData.user.name\n" +
+                    "FROM DigiData.user\n" +
+                    "INNER JOIN DigiData.answer ON DigiData.answer.user_id = DigiData.user.id\n" +
+                    "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n" +
+                    "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
+                    "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n" +
+                    "WHERE DigiData.election.id = "+id+" AND DigiData.user.id = "+uid+"\n");
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
+        app.post("/getListAllAnswers", ctx -> {
+            String id = ctx.form("id").value();
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query("SELECT DigiData.answer.id, DigiData.answer.user_id, DigiData.answer.option_id, DigiData.answer.response\n" +
+                    "FROM DigiData.answer\n" +
+                    "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n" +
+                    "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
+                    "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n" +
+                    "WHERE DigiData.election.id = "+id+"\n");
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
+        app.post("/getNumVotesForOption", ctx -> {
+            String oid = ctx.form("oid").value();
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query("SELECT COUNT(DigiData.answer.id) FROM DigiData.answer INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id WHERE DigiData.option.id = "+oid);
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
+        app.get("/persistSubmitVote", ctx -> {
+            String uid = ctx.form("uid").value();
+            String oid = ctx.form("oid").value();
+            String res = ctx.form("res").value();
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query("INSERT INTO `DigiData`.`answer` (`user_id`, `option_id`, `response`) VALUES ('"+uid+"', '"+oid+"', '"+res+"');");
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
 
 
         // start the server

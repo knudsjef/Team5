@@ -154,3 +154,8 @@ buildNumber.properties
 # custom
 output.xml
 output.csv
+
+.classpath
+.project
+.settings
+.settings/*

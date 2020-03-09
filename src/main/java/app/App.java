@@ -163,16 +163,16 @@ public class App {
 
             // gather results from the database
             ResultSet results = Database.query("SELECT \n" +
-                    "DigiData.question.name AS \"question_name\", \n" +
-                    "DigiData.question.type AS \"question_type\", \n" +
-                    "DigiData.option.name AS \"option_name\",\n" +
-                    "DigiData.answer.user_id AS \"user_id\",\n" +
-                    "DigiData.answer.response AS \"response\"\n" +
+                    "DigiData.question.name, \n" +
+                    "DigiData.question.type, \n" +
+                    "DigiData.option.name AS option_name, \n" +
+                    "DigiData.answer.user_id,\n" +
+                    "DigiData.answer.response\n" +
                     "FROM DigiData.answer\n" +
                     "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n" +
                     "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n" +
                     "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n" +
-                    "WHERE DigiData.election.id = 1\n");
+                    "WHERE DigiData.election.id = "+id+"\n");
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
@@ -186,7 +186,7 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
 
-        app.get("/persistSubmitVote", ctx -> {
+        app.post("/persistSubmitVote", ctx -> {
             String uid = ctx.form("uid").value();
             String oid = ctx.form("oid").value();
             String res = ctx.form("res").value();
@@ -196,6 +196,27 @@ public class App {
             ResultSet results = Database.query("INSERT INTO `DigiData`.`answer` (`user_id`, `option_id`, `response`) VALUES ('"+uid+"', '"+oid+"', '"+res+"');");
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
+        });
+        app.post("/persistSubmitVoteTest", ctx -> {
+            String numQuestions = ctx.form("numQuestions").value();
+            int num = Integer.valueOf(numQuestions);
+
+            String query = "INSERT INTO DigiData.answer (user_id, option_id, response) VALUES ";
+            for(int i = 1;i<=num;i++){
+                query += "(" + ctx.form("uid"+i).value() + ", ";
+                query += ctx.form("oid"+i).value() + ", ";
+                String res = ctx.form("res"+i).value();
+                res = res.equals("")?" ":res;
+                query += res + ")";
+                if(i!=num) query += ", ";
+                System.out.println(res);
+            }
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            int results = Database.query(query,"update");
+            // return the results as json for easy processing on the frontend
+            return null;
         });
 
 

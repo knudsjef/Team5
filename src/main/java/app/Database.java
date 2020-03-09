@@ -34,6 +34,10 @@ public class Database {
         return Database.getConnection().createStatement().executeQuery(query);
     }
 
+    public static int query(String query,String update) throws SQLException, ClassNotFoundException {
+        return Database.getConnection().createStatement().executeUpdate(query);
+    }
+
     // https://stackoverflow.com/questions/17160351/create-json-object-by-java-from-data-of-mysql
     public static String getJSONFromResultSet(ResultSet rs,String keyName) {
         Map json = new HashMap();

@@ -175,18 +175,17 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
 
-        app.get("/persistSubmitVote", ctx -> {
-            String uid = ctx.form("uid").value();
-            String oid = ctx.form("oid").value();
-            String res = ctx.form("res").value();
+        app.post("/persistSubmitVote", ctx -> {
+            String userId = ctx.form("user_id").value();
+            String optionId = ctx.form("option_id").value();
+            String results = ctx.form("result").value();
             ctx.setResponseType(MediaType.json);
 
             // gather results from the database
-            ResultSet results = Database
-                    .query("INSERT INTO `DigiData`.`answer` (`user_id`, `option_id`, `response`) VALUES ('" + uid
-                            + "', '" + oid + "', '" + res + "');");
+            int result = Database.statement("INSERT INTO `DigiData`.`answer` (`user_id`, `option_id`, `response`) VALUES ('" 
+                    + userId  + "', '" + optionId + "', '" + results + "');");
             // return the results as json for easy processing on the frontend
-            return Database.getJSONFromResultSet(results,"results");
+            return "{\"rowsModified\": " + result + "}";
         });
 
         // start the server

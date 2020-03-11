@@ -5,6 +5,7 @@ import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.HashSet;
 
 /**
  * server to act as an in-between for the website and the database
@@ -77,10 +78,9 @@ public class App {
         app.post("/getQuestions", ctx -> {
             String id = ctx.form("id").value();
             ctx.setResponseType(MediaType.json);
-
             // gather results from the database
-            ResultSet results = Database.query("SELECT \n" + "DigiData.question.name, \n" + "DigiData.question.id,\n"
-                    + "DigiData.question.type,\n" + "DigiData.option.name\n" + "FROM DigiData.option\n"
+            ResultSet results = Database.query("SELECT \n" + "DigiData.question.name AS question_name, \n" + "DigiData.question.id,\n"
+                    + "DigiData.question.type,\n" + "DigiData.option.name AS option_name\n" + "FROM DigiData.option\n"
                     + "INNER JOIN DigiData.question ON DigiData.question.id = DigiData.option.question_id\n"
                     + "WHERE DigiData.question.election_id = " + id + "\n");
             // return the results as json for easy processing on the frontend
@@ -186,6 +186,26 @@ public class App {
                     + userId  + "', '" + optionId + "', '" + results + "');");
             // return the results as json for easy processing on the frontend
             return "{\"rowsModified\": " + result + "}";
+        });
+        app.post("/persistSubmitVoteTest", ctx -> {
+            String numQuestions = ctx.form("numQuestions").value();
+            System.out.println("here" + numQuestions);
+            String uid = ctx.form("uid").value();
+            int num = Integer.valueOf(numQuestions);
+
+            String query = "INSERT INTO DigiData.answer (user_id, option_id, response) VALUES ";
+            for(int i = 1;i<=num;i++){
+                query += "(" + uid + ", " + ctx.form("oid"+i).value() + ", ";
+                String res = ctx.form("res"+i).value();
+                query += res + ")";
+                if(i!=num) query += ", ";
+            }
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            int results = Database.statement(query);
+            // return the results as json for easy processing on the frontend
+            return results;
         });
 
         // start the server

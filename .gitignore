@@ -72,18 +72,21 @@ gradle-app.setting
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff:
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/dictionaries
+#.idea/**/workspace.xml
+#.idea/**/tasks.xml
+#.idea/dictionaries
 
 # Sensitive or high-churn files:
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.xml
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
+#.idea/**/dataSources/
+#.idea/**/dataSources.ids
+#.idea/**/dataSources.xml
+#.idea/**/dataSources.local.xml
+#.idea/**/sqlDataSources.xml
+#.idea/**/dynamic.xml
+#.idea/**/uiDesigner.xml
+
+.idea/*
+!.idea/runConfigurations
 
 # Gradle:
 .idea/**/gradle.xml
@@ -121,9 +124,9 @@ fabric.properties
 ### Intellij Patch ###
 # Comment Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-215987721
 
-# *.iml
+*.iml
 # modules.xml
-# .idea/misc.xml
+.idea/misc.xml
 # *.ipr
 
 # Sonarlint plugin
@@ -149,5 +152,10 @@ buildNumber.properties
 !/.mvn/wrapper/maven-wrapper.jar
 
 # custom
-bundle.zip
-!uwstout-1.0.0.jar
+output.xml
+output.csv
+
+.classpath
+.project
+.settings
+.settings/*

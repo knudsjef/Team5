@@ -199,7 +199,7 @@ public class App {
             String hash = ctx.form("hash").value();
             String email = ctx.form("email").value();
             String checkUser = "SELECT Count(id) FROM DigiData.user WHERE email_address = email";
-            int check = Database.statement(checkUser);
+            int check = Database.query(checkUser).getInt(1);
             if(check == 0) {
                 String query = "INSERT INTO DigiData.user (name, password_hash, email_address, role) VALUES ";
                 query += "(" + name + ", " + hash + ", " + email + ", 'voter')";
@@ -238,9 +238,9 @@ public class App {
             String queryE = "INSERT INTO DigiData.election (user_id,group_name,start_date,end_date,name,published) VALUES";
             queryE += "(" + uid + ", " + group + ", " + start + ", " + end + ", " + name + ", " + published + ")\n";
 
-            queryE +="SELECT LAST_INSERT_ID()";
-
-            int eid = Database.statement(queryE);
+            String queryEID ="SELECT LAST_INSERT_ID()";
+            Database.statement(queryE);
+            int eid = Database.query(queryEID).getInt(1);
 
             //Insert Questions and Options
             String numQuestions = ctx.form("numQuestions").value();
@@ -248,7 +248,8 @@ public class App {
             String queryQ = "INSERT INTO DigiData.question (election_id, name, type) VALUES( " + eid + ", ";
             String queryO = "INSERT INTO DigiData.option (question_id, name) VALUES";
             for(int i = 1;i<=num;i++){
-                int queryNum = Database.statement(queryQ + ctx.form("Q"+i).value() + " SELECT LAST_INSERT_ID()");
+                Database.statement(queryQ + ctx.form("Q"+i).value());
+                int queryNum = Database.query("SELECT LAST_INSERT_ID()").getInt(1);
                 String queryOTemp = queryO;
                 int numOptions = Integer.valueOf(ctx.form("Q"+i+"numQuestions").value());
                 for(int j = 1;j<=numOptions;j++){

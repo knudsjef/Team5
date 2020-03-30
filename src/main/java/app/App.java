@@ -211,9 +211,73 @@ public class App {
             String name = ctx.form("name").value();
             String hash = ctx.form("hash").value();
             String email = ctx.form("email").value();
+            String checkUser = "SELECT Count(id) FROM DigiData.user WHERE email_address = email";
+            int check = Database.statement(checkUser);
+            if(check == 0) {
+                String query = "INSERT INTO DigiData.user (name, password_hash, email_address, role) VALUES ";
+                query += "(" + name + ", " + hash + ", " + email + ", 'voter')";
+                ctx.setResponseType(MediaType.json);
 
-            String query = "INSERT INTO DigiData.user (name, password_hash, email_address, role) VALUES ";
-            query += "(" + name + ", " + hash+ ", " + email + ", 'voter')";
+                // gather results from the database
+                int results = Database.statement(query);
+                // return the results as json for easy processing on the frontend
+                return results;
+            }
+            return "Error-User already exists";
+        });
+
+        app.post("/loginUser", ctx -> {
+            String email = ctx.form("email").value();
+            String hash = ctx.form("hash").value();
+
+            String query = "SELECT id,name,role FROM DigiData.user WHERE email_address = \"" + email + "\" AND password_hash = \"" + hash +"\"";
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query(query);
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
+
+        /*
+        app.post("/persistElection", ctx -> {
+            //Create election
+            String uid = ctx.form("userID").value();
+            String group = ctx.form("groupName").value();
+            String start = ctx.form("startDate").value();
+            String end = ctx.form("endDate").value();
+            String name = ctx.form("electionName").value();
+            String query1 = "";
+
+            query1 +="SELECT LAST_INSERT_ID()";
+
+            int eid = Database.statement(query1);
+
+            //Insert Questions
+            String numQuestions = ctx.form("numQuestions").value();
+            int num = Integer.valueOf(numQuestions);
+            String queryQ = "INSERT INTO DigiData.question (election_id, name, type) VALUES";
+            String queryO = "INSERT INTO DigiData.option (question_id, name) VALUES";
+            for(int i = 1;i<=num;i++){
+                query += "(" + uid + ", " + ctx.form("oid"+i).value() + ", ";
+                String res = ctx.form("res"+i).value();
+                query += res + ")";
+                if(i!=num) query += ", ";
+            }
+            String qName = ctx.form("questionName").value();
+            //Insert Options
+            String numQuestions = ctx.form("numQuestions").value();
+            System.out.println("here" + numQuestions);
+            String uid = ctx.form("uid").value();
+            int num = Integer.valueOf(numQuestions);
+
+            String query = "INSERT INTO DigiData.answer (user_id, option_id, response) VALUES ";
+            for(int i = 1;i<=num;i++){
+                query += "(" + uid + ", " + ctx.form("oid"+i).value() + ", ";
+                String res = ctx.form("res"+i).value();
+                query += res + ")";
+                if(i!=num) query += ", ";
+            }
             ctx.setResponseType(MediaType.json);
 
             // gather results from the database
@@ -221,7 +285,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return results;
         });
-
+        */
         // start the server
         app.start();
     }

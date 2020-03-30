@@ -239,53 +239,41 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
 
-        /*
+
         app.post("/persistElection", ctx -> {
             //Create election
-            String uid = ctx.form("userID").value();
-            String group = ctx.form("groupName").value();
+            String uid = ctx.form("uid").value();
+            String group = ctx.form("group").value();
             String start = ctx.form("startDate").value();
             String end = ctx.form("endDate").value();
             String name = ctx.form("electionName").value();
-            String query1 = "";
+            String published = ctx.form("published").value();
+            String queryE = "INSERT INTO DigiData.election (user_id,group_name,start_date,end_date,name,published) VALUES";
+            queryE += "(" + uid + ", " + group + ", " + start + ", " + end + ", " + name + ", " + published + ")\n";
 
-            query1 +="SELECT LAST_INSERT_ID()";
+            queryE +="SELECT LAST_INSERT_ID()";
 
-            int eid = Database.statement(query1);
+            int eid = Database.statement(queryE);
 
-            //Insert Questions
+            //Insert Questions and Options
             String numQuestions = ctx.form("numQuestions").value();
             int num = Integer.valueOf(numQuestions);
-            String queryQ = "INSERT INTO DigiData.question (election_id, name, type) VALUES";
+            String queryQ = "INSERT INTO DigiData.question (election_id, name, type) VALUES( " + eid + ", ";
             String queryO = "INSERT INTO DigiData.option (question_id, name) VALUES";
             for(int i = 1;i<=num;i++){
-                query += "(" + uid + ", " + ctx.form("oid"+i).value() + ", ";
-                String res = ctx.form("res"+i).value();
-                query += res + ")";
-                if(i!=num) query += ", ";
-            }
-            String qName = ctx.form("questionName").value();
-            //Insert Options
-            String numQuestions = ctx.form("numQuestions").value();
-            System.out.println("here" + numQuestions);
-            String uid = ctx.form("uid").value();
-            int num = Integer.valueOf(numQuestions);
+                int queryNum = Database.statement(queryQ + ctx.form("Q"+i).value() + " SELECT LAST_INSERT_ID()");
+                String queryOTemp = queryO;
+                int numOptions = Integer.valueOf(ctx.form("Q"+i+"numQuestions").value());
+                for(int j = 1;j<=numOptions;j++){
+                    queryOTemp += "(" + queryNum + ", " + ctx.form("Q"+i+"O"+j).value() + ")";
+                    if(j!=numOptions) queryOTemp += ", ";
+                }
+                Database.statement(queryOTemp);
 
-            String query = "INSERT INTO DigiData.answer (user_id, option_id, response) VALUES ";
-            for(int i = 1;i<=num;i++){
-                query += "(" + uid + ", " + ctx.form("oid"+i).value() + ", ";
-                String res = ctx.form("res"+i).value();
-                query += res + ")";
-                if(i!=num) query += ", ";
             }
-            ctx.setResponseType(MediaType.json);
-
-            // gather results from the database
-            int results = Database.statement(query);
-            // return the results as json for easy processing on the frontend
-            return results;
+            return eid;
         });
-        */
+
         // start the server
         app.start();
     }

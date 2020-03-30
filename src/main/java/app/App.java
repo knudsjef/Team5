@@ -176,20 +176,7 @@ public class App {
         });
 
         app.post("/persistSubmitVote", ctx -> {
-            String userId = ctx.form("user_id").value();
-            String optionId = ctx.form("option_id").value();
-            String results = ctx.form("result").value();
-            ctx.setResponseType(MediaType.json);
-
-            // gather results from the database
-            int result = Database.statement("INSERT INTO `DigiData`.`answer` (`user_id`, `option_id`, `response`) VALUES ('"
-                    + userId  + "', '" + optionId + "', '" + results + "');");
-            // return the results as json for easy processing on the frontend
-            return "{\"rowsModified\": " + result + "}";
-        });
-        app.post("/persistSubmitVoteTest", ctx -> {
             String numQuestions = ctx.form("numOptions").value();
-            System.out.println("here" + numQuestions);
             String uid = ctx.form("uid").value();
             int num = Integer.valueOf(numQuestions);
 
@@ -197,15 +184,15 @@ public class App {
             for(int i = 1;i<=num;i++){
                 query += "(" + uid + ", " + ctx.form("oid"+i).value() + ", ";
                 String res = ctx.form("res"+i).value();
-                query += res + ")";
+                query += "\"" + res + "\")";
                 if(i!=num) query += ", ";
             }
             ctx.setResponseType(MediaType.json);
 
             // gather results from the database
-            int results = Database.statement(query);
+            int result = Database.statement(query);
             // return the results as json for easy processing on the frontend
-            return results;
+            return "{\"rowsModified\": " + result + "}";
         });
         app.post("/persistInsertUser", ctx -> {
             String name = ctx.form("name").value();

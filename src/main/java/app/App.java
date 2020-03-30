@@ -188,7 +188,7 @@ public class App {
             return "{\"rowsModified\": " + result + "}";
         });
         app.post("/persistSubmitVoteTest", ctx -> {
-            String numQuestions = ctx.form("numQuestions").value();
+            String numQuestions = ctx.form("numOptions").value();
             System.out.println("here" + numQuestions);
             String uid = ctx.form("uid").value();
             int num = Integer.valueOf(numQuestions);
@@ -223,7 +223,7 @@ public class App {
                 // return the results as json for easy processing on the frontend
                 return results;
             }
-            return "Error-User already exists";
+            return "{\"error\": \"User already exists\"}";
         });
 
         app.post("/loginUser", ctx -> {

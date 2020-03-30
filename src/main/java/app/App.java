@@ -207,6 +207,20 @@ public class App {
             // return the results as json for easy processing on the frontend
             return results;
         });
+        app.post("/persistInsertUser", ctx -> {
+            String name = ctx.form("name").value();
+            String hash = ctx.form("hash").value();
+            String email = ctx.form("email").value();
+
+            String query = "INSERT INTO DigiData.user (name, password_hash, email_address, role) VALUES ";
+            query += "(" + name + ", " + hash+ ", " + email + ", 'voter')";
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            int results = Database.statement(query);
+            // return the results as json for easy processing on the frontend
+            return results;
+        });
 
         // start the server
         app.start();

@@ -4,6 +4,7 @@ import io.jooby.*;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLOutput;
 import java.util.Calendar;
 import java.util.HashSet;
 
@@ -235,26 +236,33 @@ public class App {
             String end = ctx.form("endDate").value();
             String name = ctx.form("electionName").value();
             String published = ctx.form("published").value();
-            String queryE = "INSERT INTO DigiData.election (user_id,group_name,start_date,end_date,name,published) VALUES";
-            queryE += "(" + uid + ", " + group + ", " + start + ", " + end + ", " + name + ", " + published + ")\n";
-
+            String queryE = "INSERT INTO DigiData.election (user_id, group_name, start_date, end_date, name, published) VALUES";
+            queryE += " (" + uid + ", \"" + group + "\", \"" + start + "\", \"" + end + "\", \"" + name + "\", " + published + ")\n";
+            System.out.println("=========================");
+            System.out.println(queryE);
+            System.out.println("----------------------");
             String queryEID ="SELECT LAST_INSERT_ID()";
             Database.statement(queryE);
-            int eid = Database.query(queryEID).getInt(1);
+
+            ResultSet rs = Database.query("SELECT id FROM DigiData.election WHERE name = \"" + name + "\" AND start_date = \"" + start + "\" AND end_date = \"" + end + "\" AND group_name = \"" + group + "\"");
+            rs.next();
+            int eid = rs.getInt(1);
 
             //Insert Questions and Options
             String numQuestions = ctx.form("numQuestions").value();
             int num = Integer.valueOf(numQuestions);
             String queryQ = "INSERT INTO DigiData.question (election_id, name, type) VALUES( " + eid + ", ";
             String queryO = "INSERT INTO DigiData.option (question_id, name) VALUES";
-            for(int i = 1;i<=num;i++){
-                Database.statement(queryQ + ctx.form("Q"+i).value());
-                int queryNum = Database.query("SELECT LAST_INSERT_ID()").getInt(1);
+            for(int i = 1;i<=num;i++) {
+                Database.statement(queryQ + ctx.form("Q" + i).value());
+                ResultSet getQueryNum = Database.query("SELECT LAST_INSERT_ID()");
+                getQueryNum.next();
+                int queryNum = getQueryNum.getInt(1);
                 String queryOTemp = queryO;
-                int numOptions = Integer.valueOf(ctx.form("Q"+i+"numQuestions").value());
-                for(int j = 1;j<=numOptions;j++){
-                    queryOTemp += "(" + queryNum + ", " + ctx.form("Q"+i+"O"+j).value() + ")";
-                    if(j!=numOptions) queryOTemp += ", ";
+                int numOptions = Integer.valueOf(ctx.form("Q" + i + "numOptions").value());
+                for (int j = 1; j <= numOptions; j++) {
+                    queryOTemp += "(" + queryNum + ", " + ctx.form("Q" + i + "O" + j).value() + ")";
+                    if (j != numOptions) queryOTemp += ", ";
                 }
                 Database.statement(queryOTemp);
 

@@ -256,20 +256,28 @@ public class App {
             //Insert Questions and Options
             String numQuestions = ctx.form("numQuestions").value();
             int num = Integer.valueOf(numQuestions);
-            String queryQ = "INSERT INTO DigiData.question (election_id, name, type) VALUES( " + eid + ", ";
-            String queryO = "INSERT INTO DigiData.option (question_id, name) VALUES";
             for(int i = 1;i<=num;i++) {
-                Database.statement(queryQ + ctx.form("Q" + i).value());
+                String questionName = ctx.form("Q" + i).value();
+                String questionType = ctx.form("Q" + i + "type").value();
+                String insertQuestionStatement =  "INSERT INTO DigiData.question (election_id, name, type) VALUES( " + eid + ", " + questionName + ", " + questionType + ")";
+                Database.statement(insertQuestionStatement);
+
                 ResultSet getQueryNum = Database.query("SELECT LAST_INSERT_ID()");
                 getQueryNum.next();
                 int queryNum = getQueryNum.getInt(1);
-                String queryOTemp = queryO;
                 int numOptions = Integer.valueOf(ctx.form("Q" + i + "numOptions").value());
+                String insertOptionsStatement = "INSERT INTO DigiData.option (question_id, name) VALUES";
                 for (int j = 1; j <= numOptions; j++) {
-                    queryOTemp += "(" + queryNum + ", " + ctx.form("Q" + i + "O" + j).value() + ")";
-                    if (j != numOptions) queryOTemp += ", ";
+                    String optionName = ctx.form("Q" + i + "O" + j).value();
+                    insertOptionsStatement += "( " + queryNum + ", " + "\"" + optionName + "\"" + ")";
+                    if (j != numOptions) insertOptionsStatement += ", ";
+                    else{
+                        insertOptionsStatement += ";";
+                    }
                 }
-                Database.statement(queryOTemp);
+                System.out.println(insertQuestionStatement);
+                System.out.println(insertOptionsStatement);
+                Database.statement(insertOptionsStatement);
 
             }
             return eid;

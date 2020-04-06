@@ -54,10 +54,10 @@ public class App {
             // gather results from the database
             ResultSet results = Database.query("SELECT * FROM DigiData.election\n" +
                     "INNER JOIN DigiData.user_group\n" +
-                    "WHERE DigiData.election.start_date < " + date +
-                    "AND DigiData.election.end_date > " + date +
-                    "AND DigiData.election.group_name = DigiData.user_group.group_name\n" +
-                    "AND DigiData.user_group.user_id = " + id);
+                    "WHERE DigiData.election.start_date < '" + date +
+                    "' AND DigiData.election.end_date > '" + date +
+                    "' AND DigiData.election.group_name = DigiData.user_group.group_name\n" +
+                    "AND DigiData.user_group.user_id = '" + id + "'");
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });

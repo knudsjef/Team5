@@ -49,10 +49,15 @@ public class App {
         });
         app.post("/getCurrentElections", ctx -> {
             ctx.setResponseType(MediaType.json);
+            String id = ctx.form("id").value();
             java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
             // gather results from the database
-            ResultSet results = Database.query("SELECT * from DigiData.election WHERE DigiData.election.start_date < '"
-                    + date + "'AND DigiData.election.end_date > '" + date + "'");
+            ResultSet results = Database.query("SELECT * FROM DigiData.election\n" +
+                    "INNER JOIN DigiData.user_group\n" +
+                    "WHERE DigiData.election.start_date < " + date +
+                    "AND DigiData.election.end_date > " + date +
+                    "AND DigiData.election.group_name = DigiData.user_group.group_name\n" +
+                    "AND DigiData.user_group.user_id = " + id);
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });

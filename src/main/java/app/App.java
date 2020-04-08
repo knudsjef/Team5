@@ -47,12 +47,13 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
+        //TODO Fix still getting all ID as 1
         app.post("/getCurrentElections", ctx -> {
             ctx.setResponseType(MediaType.json);
             String id = ctx.form("id").value();
             java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
             // gather results from the database
-            ResultSet results = Database.query("SELECT * FROM DigiData.election\n" +
+            ResultSet results = Database.query("SELECT DigiData.election.id, DigiData.election.name, DigiData.election.start_date, DigiDate.election.end_date FROM DigiData.election\n" +
                     "INNER JOIN DigiData.user_group\n" +
                     "WHERE DigiData.election.start_date < '" + date +
                     "' AND DigiData.election.end_date > '" + date +
@@ -142,12 +143,11 @@ public class App {
             ctx.setResponseType(MediaType.json);
 
             // gather results from the database
-            ResultSet results = Database.query("SELECT DigiData.user.id, DigiData.user.name\n" + "FROM DigiData.user\n"
-                    + "INNER JOIN DigiData.answer ON DigiData.answer.user_id = DigiData.user.id\n"
+            ResultSet results = Database.query("SELECT COUNT(DigiData.answer.user_id)\n" + "FROM DigiData.answer\n"
                     + "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n"
                     + "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n"
-                    + "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n"
-                    + "WHERE DigiData.election.id = " + id + " AND DigiData.user.id = " + uid + "\n");
+                    + "WHERE DigiData.answer.option_id = DigiData.option.id AND DigiData.option.question_id = DigiData.question.id "
+                    + "AND DigiData.question.election_id = '" + id + "' AND DigiData.user.id = '" + uid + "'\n");
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });

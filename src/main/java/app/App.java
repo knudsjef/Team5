@@ -53,7 +53,7 @@ public class App {
             String id = ctx.form("id").value();
             java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
             // gather results from the database
-            ResultSet results = Database.query("SELECT DigiData.election.id, DigiData.election.name, DigiData.election.start_date, DigiDate.election.end_date FROM DigiData.election\n" +
+            ResultSet results = Database.query("SELECT DigiData.election.id, DigiData.election.name, DigiData.election.start_date, DigiData.election.end_date FROM DigiData.election\n" +
                     "INNER JOIN DigiData.user_group\n" +
                     "WHERE DigiData.election.start_date < '" + date +
                     "' AND DigiData.election.end_date > '" + date +

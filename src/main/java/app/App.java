@@ -147,7 +147,7 @@ public class App {
                     + "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n"
                     + "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n"
                     + "WHERE DigiData.answer.option_id = DigiData.option.id AND DigiData.option.question_id = DigiData.question.id "
-                    + "AND DigiData.question.election_id = '" + id + "' AND DigiData.user.id = '" + uid + "'\n");
+                    + "AND DigiData.question.election_id = '" + id + "' AND DigiData.answer.user_id = '" + uid + "'\n");
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });

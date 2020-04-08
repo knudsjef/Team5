@@ -259,7 +259,7 @@ public class App {
             for(int i = 1;i<=num;i++) {
                 String questionName = ctx.form("Q" + i).value();
                 String questionType = ctx.form("Q" + i + "type").value();
-                String insertQuestionStatement =  "INSERT INTO DigiData.question (election_id, name, type) VALUES( " + eid + ", " + questionName + ", " + questionType + ")";
+                String insertQuestionStatement =  "INSERT INTO DigiData.question (election_id, name, type) VALUES( " + eid + ", \"" + questionName + "\", " + questionType + ")";
                 Database.statement(insertQuestionStatement);
 
                 ResultSet getQueryNum = Database.query("SELECT LAST_INSERT_ID()");
@@ -280,7 +280,7 @@ public class App {
                 Database.statement(insertOptionsStatement);
 
             }
-            return eid;
+            return "{\"electionID\": \"" + eid + "\"}";
         });
 
         // start the server

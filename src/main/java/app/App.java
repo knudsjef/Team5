@@ -204,13 +204,14 @@ public class App {
             String name = ctx.form("name").value();
             String hash = ctx.form("hash").value();
             String email = ctx.form("email").value();
-            String checkUser = "SELECT Count(id) FROM DigiData.user WHERE email_address = email";
-            int check = Database.query(checkUser).getInt(1);
-            if(check == 0) {
+            String checkUser = "SELECT Count(id) FROM DigiData.user WHERE email_address = "+email;
+            ResultSet check = Database.query(checkUser);
+            check.next();
+            Integer checkBool = check.getInt(1);
+            if(checkBool == 0) {
                 String query = "INSERT INTO DigiData.user (name, password_hash, email_address, role) VALUES ";
                 query += "(" + name + ", " + hash + ", " + email + ", 'voter')";
                 ctx.setResponseType(MediaType.json);
-
                 // gather results from the database
                 int results = Database.statement(query);
                 // return the results as json for easy processing on the frontend
@@ -218,6 +219,7 @@ public class App {
             }
             return "{\"error\": \"User already exists\"}";
         });
+
 
         app.post("/loginUser", ctx -> {
             String email = ctx.form("email").value();

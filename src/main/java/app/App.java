@@ -236,37 +236,45 @@ public class App {
 
 
         app.post("/persistElection", ctx -> {
-            //Create election
+            // grab all the election information from the form fields
             String uid = ctx.form("uid").value();
             String group = ctx.form("group").value();
             String start = ctx.form("startDate").value();
             String end = ctx.form("endDate").value();
             String name = ctx.form("electionName").value();
             String published = ctx.form("published").value();
+
+            // construct the election creation statement
             String queryE = "INSERT INTO DigiData.election (user_id, group_name, start_date, end_date, name, published) VALUES";
+
+            // append the values from the form
             queryE += " (" + uid + ", \"" + group + "\", \"" + start + "\", \"" + end + "\", \"" + name + "\", " + published + ")\n";
-            System.out.println("=========================");
-            System.out.println(queryE);
-            System.out.println("----------------------");
-            String queryEID ="SELECT LAST_INSERT_ID()";
+
+            // execute the statement to create the election
             Database.statement(queryE);
 
+            // get the newly created election ID
             ResultSet rs = Database.query("SELECT id FROM DigiData.election WHERE name = \"" + name + "\" AND start_date = \"" + start + "\" AND end_date = \"" + end + "\" AND group_name = \"" + group + "\"");
             rs.next();
             int eid = rs.getInt(1);
 
-            //Insert Questions and Options
+            // insert questions and options
             String numQuestions = ctx.form("numQuestions").value();
             int num = Integer.valueOf(numQuestions);
+            // for each question, insert that question and insert all corresponding options into the database
             for(int i = 1;i<=num;i++) {
+                // insert question question
                 String questionName = ctx.form("Q" + i).value();
                 String questionType = ctx.form("Q" + i + "type").value();
                 String insertQuestionStatement =  "INSERT INTO DigiData.question (election_id, name, type) VALUES( " + eid + ", \"" + questionName + "\", " + questionType + ")";
                 Database.statement(insertQuestionStatement);
 
+                // get question ID from database
                 ResultSet getQueryNum = Database.query("SELECT LAST_INSERT_ID()");
                 getQueryNum.next();
                 int queryNum = getQueryNum.getInt(1);
+
+                // insert all options in one statement
                 int numOptions = Integer.valueOf(ctx.form("Q" + i + "numOptions").value());
                 String insertOptionsStatement = "INSERT INTO DigiData.option (question_id, name) VALUES";
                 for (int j = 1; j <= numOptions; j++) {
@@ -277,11 +285,10 @@ public class App {
                         insertOptionsStatement += ";";
                     }
                 }
-                System.out.println(insertQuestionStatement);
-                System.out.println(insertOptionsStatement);
                 Database.statement(insertOptionsStatement);
 
             }
+            // return the ID of the election created
             return "{\"electionID\": \"" + eid + "\"}";
         });
 

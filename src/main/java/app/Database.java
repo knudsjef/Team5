@@ -41,7 +41,11 @@ public class Database {
     // https://stackoverflow.com/questions/17160351/create-json-object-by-java-from-data-of-mysql\
     // credit to original author, multiple bugs fixed
     public static String getJSONFromResultSet(ResultSet rs, String keyName) {
-        HashMap<String,Object> json = new HashMap<>();
+        HashMap<String, Object> json = getJSON(rs,keyName);
+        return JSONValue.toJSONString(json);
+    }
+    public static HashMap<String, Object> getJSON(ResultSet rs, String keyName) {
+        HashMap<String, Object> json = new HashMap<>();
         ArrayList<Map<String, Object>> list = new ArrayList<>();
         if (rs != null) {
             try {
@@ -62,6 +66,6 @@ public class Database {
             }
             json.put(keyName, list);
         }
-        return JSONValue.toJSONString(json);
+        return json;
     }
 }

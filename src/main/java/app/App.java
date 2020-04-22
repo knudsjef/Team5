@@ -1,12 +1,13 @@
 package app;
 
 import io.jooby.*;
+import org.json.simple.JSONValue;
+
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLOutput;
-import java.util.Calendar;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * server to act as an in-between for the website and the database
@@ -47,7 +48,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-        //TODO Fix still getting all ID as 1
+
         app.post("/getCurrentElections", ctx -> {
             ctx.setResponseType(MediaType.json);
             String id = ctx.form("id").value();
@@ -220,7 +221,7 @@ public class App {
             return "{\"error\": \"User already exists\"}";
         });
 
-
+        HashMap<String,String[]> certificates = new HashMap<String,String[]>();
         app.post("/loginUser", ctx -> {
             String email = ctx.form("email").value();
             String hash = ctx.form("hash").value();
@@ -230,8 +231,41 @@ public class App {
 
             // gather results from the database
             ResultSet results = Database.query(query);
+
+            //Auto generate certificate key for logging in
+            //TODO Ensure certificate is unique
+            String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            StringBuilder cert = new StringBuilder();
+            Random rnd = new Random();
+            while (cert.length() <= 128) { // length of the random string.
+                int index = (int) (rnd.nextFloat() * chars.length());
+                cert.append(chars.charAt(index));
+            }
+            String certKey = cert.toString();
+
+            //Appends certificate to results
+            HashMap<String, Object> res = Database.getJSON(results,"results");
+            res.put("certificate",certKey);
+
+            //Appends certificate to valid certificates list
+            java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+            String[] values = {date.toString(),email};
+            certificates.put(certKey,values);
+
             // return the results as json for easy processing on the frontend
-            return Database.getJSONFromResultSet(results,"results");
+            return JSONValue.toJSONString(res);
+        });
+
+        app.post("/checkCertificate", ctx -> {
+            java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+            String certificate = ctx.form("certificate").value();
+            String email = ctx.form("email").value();
+            System.out.println(certificates.get(certificate)[1]);
+            System.out.println(email);
+            if(certificates.get(certificate)[1].equals(email)){
+                return "{\"valid\": \"true\"}";
+            }
+            return "{\"valid\": \"false\"}";
         });
 
 

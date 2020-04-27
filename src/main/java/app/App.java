@@ -13,6 +13,7 @@ import java.util.*;
  * server to act as an in-between for the website and the database
  */
 public class App {
+    private static HashMap<String,String[]> certificates = new HashMap<String,String[]>();
     public static void main(final String[] args) throws IOException, SQLException, ClassNotFoundException {
         // create server
         Jooby app = new Jooby();
@@ -39,8 +40,13 @@ public class App {
 
         // address to retrieve a list of all elections stored in the database
         app.post("/getElection", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String id = ctx.form("id").value();
-            // int id = ctx.path("id").intValue();
+
             ctx.setResponseType(MediaType.json);
 
             // gather results from the database
@@ -50,6 +56,11 @@ public class App {
         });
 
         app.post("/getCurrentElections", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             ctx.setResponseType(MediaType.json);
             String id = ctx.form("id").value();
             java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
@@ -73,6 +84,11 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getNumQuestions", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String id = ctx.form("id").value();
             ctx.setResponseType(MediaType.json);
 
@@ -84,6 +100,11 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getQuestions", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String id = ctx.form("id").value();
             ctx.setResponseType(MediaType.json);
             // gather results from the database
@@ -95,6 +116,11 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getQuestionOptions", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String qid = ctx.form("qid").value();
             ctx.setResponseType(MediaType.json);
 
@@ -105,6 +131,11 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getBoolQuestionType", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String qid = ctx.form("qid").value();
             ctx.setResponseType(MediaType.json);
             // gather results from the database
@@ -114,6 +145,11 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getNumQuestionOptions", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String qid = ctx.form("qid").value();
             ctx.setResponseType(MediaType.json);
 
@@ -125,6 +161,11 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getListUsersVoted", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String id = ctx.form("id").value();
             ctx.setResponseType(MediaType.json);
 
@@ -139,6 +180,13 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getBoolUserVoted", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                System.out.println("here2");
+                return "{\"valid\": \"false\"}";
+            }
+
             String id = ctx.form("id").value();
             String uid = ctx.form("uid").value();
             ctx.setResponseType(MediaType.json);
@@ -153,6 +201,11 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getListAllAnswers", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String id = ctx.form("id").value();
             ctx.setResponseType(MediaType.json);
 
@@ -171,6 +224,11 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getNumVotesForOption", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String oid = ctx.form("oid").value();
             ctx.setResponseType(MediaType.json);
 
@@ -183,6 +241,11 @@ public class App {
         });
 
         app.post("/persistSubmitVote", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String numQuestions = ctx.form("numOptions").value();
             String uid = ctx.form("uid").value();
             int num = Integer.valueOf(numQuestions);
@@ -202,6 +265,11 @@ public class App {
             return "{\"rowsModified\": " + result + "}";
         });
         app.post("/persistInsertUser", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             String name = ctx.form("name").value();
             String hash = ctx.form("hash").value();
             String email = ctx.form("email").value();
@@ -220,8 +288,6 @@ public class App {
             }
             return "{\"error\": \"User already exists\"}";
         });
-
-        HashMap<String,String[]> certificates = new HashMap<String,String[]>();
         app.post("/loginUser", ctx -> {
             String email = ctx.form("email").value();
             String hash = ctx.form("hash").value();
@@ -247,9 +313,10 @@ public class App {
             HashMap<String, Object> res = Database.getJSON(results,"results");
             res.put("certificate",certKey);
 
-            //Appends certificate to valid certificates list
             java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
-            String[] values = {date.toString(),email};
+            results.first();
+            String[] values = {""+date.getTime(),results.getString(1)};
+
             certificates.put(certKey,values);
 
             // return the results as json for easy processing on the frontend
@@ -259,17 +326,19 @@ public class App {
         app.post("/checkCertificate", ctx -> {
             java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
             String certificate = ctx.form("certificate").value();
-            String email = ctx.form("email").value();
-            System.out.println(certificates.get(certificate)[1]);
-            System.out.println(email);
-            if(certificates.get(certificate)[1].equals(email)){
-                return "{\"valid\": \"true\"}";
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
             }
-            return "{\"valid\": \"false\"}";
+            return "{\"valid\": \"true\"}";
         });
 
-
         app.post("/persistElection", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(checkCertificate(certificate,userID)){
+                return "{\"valid\": \"false\"}";
+            }
             // grab all the election information from the form fields
             String uid = ctx.form("uid").value();
             String group = ctx.form("group").value();
@@ -328,5 +397,16 @@ public class App {
 
         // start the server
         app.start();
+    }
+    private static boolean checkCertificate(String certificate, String userID) {
+        java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+        if(certificates.get(certificate)[1].equals(userID)){
+            if(date.getTime()-Long.parseLong(certificates.get(certificate)[0])>=3600000){
+                certificates.remove(certificate);
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 }

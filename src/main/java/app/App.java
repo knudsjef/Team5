@@ -42,7 +42,7 @@ public class App {
         app.post("/getElection", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String id = ctx.form("id").value();
@@ -58,7 +58,7 @@ public class App {
         app.post("/getCurrentElections", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             ctx.setResponseType(MediaType.json);
@@ -86,7 +86,7 @@ public class App {
         app.post("/getNumQuestions", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String id = ctx.form("id").value();
@@ -102,7 +102,7 @@ public class App {
         app.post("/getQuestions", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String id = ctx.form("id").value();
@@ -118,7 +118,7 @@ public class App {
         app.post("/getQuestionOptions", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String qid = ctx.form("qid").value();
@@ -133,7 +133,7 @@ public class App {
         app.post("/getBoolQuestionType", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String qid = ctx.form("qid").value();
@@ -147,7 +147,7 @@ public class App {
         app.post("/getNumQuestionOptions", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String qid = ctx.form("qid").value();
@@ -163,7 +163,7 @@ public class App {
         app.post("/getListUsersVoted", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String id = ctx.form("id").value();
@@ -182,8 +182,7 @@ public class App {
         app.post("/getBoolUserVoted", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
-                System.out.println("here2");
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
 
@@ -203,7 +202,7 @@ public class App {
         app.post("/getListAllAnswers", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String id = ctx.form("id").value();
@@ -226,7 +225,7 @@ public class App {
         app.post("/getNumVotesForOption", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String oid = ctx.form("oid").value();
@@ -243,7 +242,7 @@ public class App {
         app.post("/persistSubmitVote", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String numQuestions = ctx.form("numOptions").value();
@@ -267,7 +266,7 @@ public class App {
         app.post("/persistInsertUser", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             String name = ctx.form("name").value();
@@ -327,7 +326,7 @@ public class App {
             java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             return "{\"valid\": \"true\"}";
@@ -336,7 +335,7 @@ public class App {
         app.post("/persistElection", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(checkCertificate(certificate,userID)){
+            if(!checkCertificate(certificate,userID)){
                 return "{\"valid\": \"false\"}";
             }
             // grab all the election information from the form fields

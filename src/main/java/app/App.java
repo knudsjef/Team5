@@ -272,11 +272,6 @@ public class App {
             return "{\"rowsModified\": " + result + "}";
         });
         app.post("/persistInsertUser", ctx -> {
-            String certificate = ctx.form("certificate").value();
-            String userID = ctx.form("userID").value();
-            if(!checkCertificate(certificate,userID)){
-                return "{\"valid\": \"false\"}";
-            }
             String name = ctx.form("name").value();
             String hash = ctx.form("hash").value();
             String email = ctx.form("email").value();
@@ -291,6 +286,12 @@ public class App {
                 // gather results from the database
                 int results = Database.statement(query);
                 // return the results as json for easy processing on the frontend
+                String findNewUser = "SELECT id FROM DigiData.user WHERE email_address = " + email;
+                ResultSet findID = Database.query(findNewUser);
+                findID.next();
+                String userID = findID.getString(1);
+                String addGroup = "INSERT INTO DigiData.user_group (user_id, group_name) VALUES (" + userID + ", 'Anyone')";
+                int group = Database.statement(addGroup);
                 return results;
             }
             return "{\"error\": \"User already exists\"}";

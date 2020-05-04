@@ -46,17 +46,10 @@ public class App {
             }
             String id = ctx.form("id").value();
             ctx.setResponseType(MediaType.json);
-            java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
-            ResultSet checkDate = Database.query("SELECT DigiData.election.end_date from DigiData.election WHERE DigiData.election.id = " + id);
-            checkDate.next();
-            java.sql.Date endDate = checkDate.getDate(1);
-            if(date.getTime() > endDate.getTime()){
-                // gather results from the database
-                ResultSet results = Database.query("SELECT * from DigiData.election WHERE DigiData.election.id = " + id);
-                // return the results as json for easy processing on the frontend
-                return Database.getJSONFromResultSet(results,"results");
-            }
-            return "{\"valid\": \"false\"}";
+            // gather results from the database
+            ResultSet results = Database.query("SELECT * from DigiData.election WHERE DigiData.election.id = " + id);
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
         });
 
         app.post("/getCurrentElections", ctx -> {

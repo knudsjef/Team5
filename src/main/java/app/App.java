@@ -255,6 +255,28 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
 
+        app.post("/getElectionQuestionsAndOptions", ctx -> {
+            String certificate = ctx.form("certificate").value();
+            String userID = ctx.form("userID").value();
+            if(!checkCertificate(ctx)) {
+                return "{\"valid\": \"false\"}";
+            }
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query("SELECT \n" +
+                    "    q.id AS 'question_id',\n" +
+                    "    q.name AS 'question_name',\n" +
+                    "    q.type AS 'question_type',\n" +
+                    "    o.name AS 'option_name',\n" +
+                    "    o.id AS 'option_id'\n" +
+                    "FROM DigiData.question q\n" +
+                    "INNER JOIN DigiData.option o ON q.id = o.question_id\n" +
+                    "WHERE q.election_id = " + ctx.form("electionID").value());
+            // return the results as json for easy processing on the frontend
+            return Database.getJSONFromResultSet(results,"results");
+        });
+
         app.post("/persistSubmitVote", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -414,11 +436,14 @@ public class App {
         String certificate = ctx.form("certificate").value();
         String userID = ctx.form("userID").value();
         java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
-        if(certificates.get(certificate) != null && certificates.get(certificate)[1].equals(userID)){
-            if(date.getTime()-Long.parseLong(certificates.get(certificate)[0])>=3600000){
+        String[] certPair = certificates.get(certificate);
+        if(certPair != null && certPair[1].equals(userID)){
+            if(date.getTime()-Long.parseLong(certPair[0])>=3600000) {
                 certificates.remove(certificate);
                 return false;
             }
+            certPair[0]=""+date.getTime();
+            certificates.replace(certificate,certPair);
             return true;
         }
         return false;

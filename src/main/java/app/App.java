@@ -183,11 +183,19 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getBoolUserVoted", ctx -> {
+            java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+            String id = ctx.form("id").value();
+            ResultSet checkDate = Database.query("SELECT DigiData.election.end_date from DigiData.election WHERE DigiData.election.id = " + id);
+            checkDate.next();
+            java.sql.Date endDate = checkDate.getDate(1);
+
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
+            if(endDate.getTime() < date.getTime()){
+                return "{\"valid\": \"true\"}";
+            }
             if(userID.equals("")||checkCertificate(certificate,userID)) {
                 System.out.println(userID);
-                String id = ctx.form("id").value();
                 String uid = ctx.form("uid").value();
                 ctx.setResponseType(MediaType.json);
 
@@ -198,7 +206,7 @@ public class App {
                         + "WHERE DigiData.answer.option_id = DigiData.option.id AND DigiData.option.question_id = DigiData.question.id "
                         + "AND DigiData.question.election_id = '" + id + "' AND DigiData.answer.user_id = '" + uid + "'\n");
                 // return the results as json for easy processing on the frontend
-                return Database.getJSONFromResultSet(results, "results");
+                return "{\"valid\": \"true\"}";
             }
             return "{\"valid\": \"false\"}";
         });

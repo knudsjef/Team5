@@ -438,11 +438,14 @@ public class App {
     }
     private static boolean checkCertificate(String certificate, String userID) {
         java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
-        if(certificates.get(certificate)[1].equals(userID)){
-            if(date.getTime()-Long.parseLong(certificates.get(certificate)[0])>=3600000){
+        String[] certPair = certificates.get(certificate);
+        if(certPair[1].equals(userID)){
+            if(date.getTime()-Long.parseLong(certPair[0])>=3600000) {
                 certificates.remove(certificate);
                 return false;
             }
+            certPair[0]=""+date.getTime();
+            certificates.replace(certificate,certPair);
             return true;
         }
         return false;

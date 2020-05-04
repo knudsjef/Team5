@@ -189,7 +189,6 @@ public class App {
                 return "{\"valid\": \"true\"}";
             }
             if(uid.equals("")||checkCertificate(ctx)) {
-                System.out.println(uid);
                 ctx.setResponseType(MediaType.json);
 
                 // gather results from the database

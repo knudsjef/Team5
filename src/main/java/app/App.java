@@ -42,17 +42,20 @@ public class App {
         app.post("/getElection", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(!checkCertificate(certificate,userID)){
-                return "{\"valid\": \"false\"}";
-            }
             String id = ctx.form("id").value();
-
             ctx.setResponseType(MediaType.json);
+            java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+            ResultSet checkDate = Database.query("SELECT DigiData.election.end_date from DigiData.election WHERE DigiData.election.id = " + id);
+            checkDate.next();
+            java.sql.Date endDate = checkDate.getDate(1);
+            if(date.getTime() > endDate.getTime() || checkCertificate(certificate,userID)){
+                // gather results from the database
+                ResultSet results = Database.query("SELECT * from DigiData.election WHERE DigiData.election.id = " + id);
+                // return the results as json for easy processing on the frontend
+                return Database.getJSONFromResultSet(results,"results");
+            }
+            return "{\"valid\": \"false\"}";
 
-            // gather results from the database
-            ResultSet results = Database.query("SELECT * from DigiData.election WHERE DigiData.election.id = " + id);
-            // return the results as json for easy processing on the frontend
-            return Database.getJSONFromResultSet(results,"results");
         });
 
         app.post("/getCurrentElections", ctx -> {
@@ -180,47 +183,60 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
         app.post("/getBoolUserVoted", ctx -> {
+            java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+            String id = ctx.form("id").value();
+            ResultSet checkDate = Database.query("SELECT DigiData.election.end_date from DigiData.election WHERE DigiData.election.id = " + id);
+            checkDate.next();
+            java.sql.Date endDate = checkDate.getDate(1);
+
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(!checkCertificate(certificate,userID)){
-                return "{\"valid\": \"false\"}";
+            if(endDate.getTime() < date.getTime()){
+                return "{\"valid\": \"true\"}";
             }
+            if(userID.equals("")||checkCertificate(certificate,userID)) {
+                System.out.println(userID);
+                String uid = ctx.form("uid").value();
+                ctx.setResponseType(MediaType.json);
 
-            String id = ctx.form("id").value();
-            String uid = ctx.form("uid").value();
-            ctx.setResponseType(MediaType.json);
-
-            // gather results from the database
-            ResultSet results = Database.query("SELECT COUNT(DigiData.answer.user_id)\n" + "FROM DigiData.answer\n"
-                    + "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n"
-                    + "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n"
-                    + "WHERE DigiData.answer.option_id = DigiData.option.id AND DigiData.option.question_id = DigiData.question.id "
-                    + "AND DigiData.question.election_id = '" + id + "' AND DigiData.answer.user_id = '" + uid + "'\n");
-            // return the results as json for easy processing on the frontend
-            return Database.getJSONFromResultSet(results,"results");
+                // gather results from the database
+                ResultSet results = Database.query("SELECT COUNT(DigiData.answer.user_id)\n" + "FROM DigiData.answer\n"
+                        + "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n"
+                        + "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n"
+                        + "WHERE DigiData.answer.option_id = DigiData.option.id AND DigiData.option.question_id = DigiData.question.id "
+                        + "AND DigiData.question.election_id = '" + id + "' AND DigiData.answer.user_id = '" + uid + "'\n");
+                // return the results as json for easy processing on the frontend
+                return "{\"valid\": \"true\"}";
+            }
+            return "{\"valid\": \"false\"}";
         });
         app.post("/getListAllAnswers", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
-            if(!checkCertificate(certificate,userID)){
-                return "{\"valid\": \"false\"}";
-            }
-            String id = ctx.form("id").value();
-            ctx.setResponseType(MediaType.json);
 
-            // gather results from the database
-            ResultSet results = Database.query("SELECT \n"
-                    + "DigiData.question.name AS \"question_name\", \n"
-                    + "DigiData.question.type AS \"question_type\", \n" 
-                    + "DigiData.option.name AS \"option_name\",\n"
-                    + "DigiData.answer.user_id AS \"user_id\",\n" + "DigiData.answer.response AS \"response\"\n"
-                    + "FROM DigiData.answer\n"
-                    + "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n"
-                    + "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n"
-                    + "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n"
-                    + "WHERE DigiData.election.id = " + id);
-            // return the results as json for easy processing on the frontend
-            return Database.getJSONFromResultSet(results,"results");
+            String id = ctx.form("id").value();
+
+            ctx.setResponseType(MediaType.json);
+            java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+            ResultSet checkDate = Database.query("SELECT DigiData.election.end_date from DigiData.election WHERE DigiData.election.id = " + id);
+            checkDate.next();
+            java.sql.Date endDate = checkDate.getDate(1);
+            if(date.getTime() > endDate.getTime() || checkCertificate(certificate,userID)){
+                // gather results from the database
+                ResultSet results = Database.query("SELECT \n"
+                        + "DigiData.question.name AS \"question_name\", \n"
+                        + "DigiData.question.type AS \"question_type\", \n"
+                        + "DigiData.option.name AS \"option_name\",\n"
+                        + "DigiData.answer.user_id AS \"user_id\",\n" + "DigiData.answer.response AS \"response\"\n"
+                        + "FROM DigiData.answer\n"
+                        + "INNER JOIN DigiData.option ON DigiData.answer.option_id = DigiData.option.id\n"
+                        + "INNER JOIN DigiData.question ON DigiData.option.question_id = DigiData.question.id\n"
+                        + "INNER JOIN DigiData.election ON DigiData.question.election_id = DigiData.election.id\n"
+                        + "WHERE DigiData.election.id = " + id);
+                // return the results as json for easy processing on the frontend
+                return Database.getJSONFromResultSet(results,"results");
+            }
+            return "{\"valid\": \"false\"}";
         });
         app.post("/getNumVotesForOption", ctx -> {
             String certificate = ctx.form("certificate").value();
@@ -286,11 +302,6 @@ public class App {
             return "{\"rowsModified\": " + result + "}";
         });
         app.post("/persistInsertUser", ctx -> {
-            String certificate = ctx.form("certificate").value();
-            String userID = ctx.form("userID").value();
-            if(!checkCertificate(certificate,userID)){
-                return "{\"valid\": \"false\"}";
-            }
             String name = ctx.form("name").value();
             String hash = ctx.form("hash").value();
             String email = ctx.form("email").value();
@@ -305,6 +316,12 @@ public class App {
                 // gather results from the database
                 int results = Database.statement(query);
                 // return the results as json for easy processing on the frontend
+                String findNewUser = "SELECT id FROM DigiData.user WHERE email_address = " + email;
+                ResultSet findID = Database.query(findNewUser);
+                findID.next();
+                String userID = findID.getString(1);
+                String addGroup = "INSERT INTO DigiData.user_group (user_id, group_name) VALUES (" + userID + ", 'Anyone')";
+                int group = Database.statement(addGroup);
                 return results;
             }
             return "{\"error\": \"User already exists\"}";

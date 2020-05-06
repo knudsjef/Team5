@@ -52,6 +52,7 @@ public class App {
             return Database.getJSONFromResultSet(results,"results");
         });
 
+        // address to retrieve a list of all current elections stored in the database
         app.post("/getCurrentElections", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -69,7 +70,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve a list of all previous elections stored in the database
         app.post("/getPreviousElections", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -82,7 +83,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve the number of questions an election has
         app.post("/getNumQuestions", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -97,7 +98,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve the questions from an election
         app.post("/getQuestions", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -112,7 +113,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve the options for a question in an election
         app.post("/getQuestionOptions", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -126,7 +127,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve what type a question is
         app.post("/getBoolQuestionType", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -139,7 +140,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve the number of options a question has
         app.post("/getNumQuestionOptions", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -154,7 +155,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve the list of users that have voted for a particular election
         app.post("/getListUsersVoted", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -172,7 +173,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve whether a user has already voted, or if the election has finished
         app.post("/getBoolUserVoted", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -188,7 +189,7 @@ public class App {
             if(endDate.getTime() < date.getTime()){
                 return "{\"valid\": \"true\"}";
             }
-            if(uid.equals("")||checkCertificate(ctx)) {
+            if(checkCertificate(ctx)) {
                 ctx.setResponseType(MediaType.json);
 
                 // gather results from the database
@@ -198,11 +199,14 @@ public class App {
                         + "WHERE DigiData.answer.option_id = DigiData.option.id AND DigiData.option.question_id = DigiData.question.id "
                         + "AND DigiData.question.election_id = '" + id + "' AND DigiData.answer.user_id = '" + uid + "'\n");
                 // return the results as json for easy processing on the frontend
-                return "{\"valid\": \"true\"}";
+                results.first();
+                if(results.getInt(1)>0) {
+                    return "{\"valid\": \"true\"}";
+                }
             }
             return "{\"valid\": \"false\"}";
         });
-
+        // address to retrieve a list of all answers for a question
         app.post("/getListAllAnswers", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -232,6 +236,7 @@ public class App {
             }
             return "{\"valid\": \"false\"}";
         });
+        // address to retrieve the number of votes for a particular option for a question
         app.post("/getNumVotesForOption", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -246,7 +251,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to retrieve both the questions and options for an election
         app.post("/getElectionQuestionsAndOptions", ctx -> {
             String certificate = ctx.form("certificate").value();
             String userID = ctx.form("userID").value();
@@ -268,7 +273,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
-
+        // address to submit a vote to the database
         app.post("/persistSubmitVote", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -292,6 +297,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return "{\"rowsModified\": " + result + "}";
         });
+        // address to insert a new user into the database
         app.post("/persistInsertUser", ctx -> {
             String name = ctx.form("name").value();
             String hash = ctx.form("hash").value();
@@ -317,7 +323,7 @@ public class App {
             }
             return "{\"error\": \"User already exists\"}";
         });
-
+        // address to verify a users credentials, and create a temporary certificate on the server
         app.post("/loginUser", ctx -> {
             String email = ctx.form("email").value();
             String hash = ctx.form("hash").value();
@@ -329,7 +335,6 @@ public class App {
             ResultSet results = Database.query(query);
 
             //Auto generate certificate key for logging in
-            //TODO Ensure certificate is unique
             String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
             StringBuilder cert = new StringBuilder();
             Random rnd = new Random();
@@ -352,7 +357,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return JSONValue.toJSONString(res);
         });
-
+        // address to check a certificates validity
         app.post("/checkCertificate", ctx -> {
             java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
             if(!checkCertificate(ctx)){
@@ -360,7 +365,7 @@ public class App {
             }
             return "{\"valid\": \"true\"}";
         });
-
+        // address to insert a new election into the database
         app.post("/persistElection", ctx -> {
             if(!checkCertificate(ctx)){
                 return "{\"valid\": \"false\"}";
@@ -424,6 +429,8 @@ public class App {
         // start the server
         app.start();
     }
+
+    // Function to check the certificate and userid pairs validity
     private static boolean checkCertificate(Context ctx) {
         String certificate = ctx.form("certificate").value();
         String userID = ctx.form("userID").value();

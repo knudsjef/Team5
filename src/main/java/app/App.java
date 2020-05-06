@@ -273,6 +273,7 @@ public class App {
             // return the results as json for easy processing on the frontend
             return Database.getJSONFromResultSet(results,"results");
         });
+
         // address to submit a vote to the database
         app.post("/persistSubmitVote", ctx -> {
             if(!checkCertificate(ctx)){
@@ -364,6 +365,46 @@ public class App {
                 return "{\"valid\": \"false\"}";
             }
             return "{\"valid\": \"true\"}";
+        });
+        // address to update an existing election
+        app.post("/editElection", ctx -> {
+                    if (!checkCertificate(ctx)) {
+                        return "{\"valid\": \"false\"}";
+                    }
+                    // grab all the election information from the form fields
+                    String eid = ctx.form("eid").value();
+                    String uid = ctx.form("uid").value();
+                    String group = ctx.form("group").value();
+                    String start = ctx.form("startDate").value();
+                    String end = ctx.form("endDate").value();
+                    String name = ctx.form("electionName").value();
+                    String published = ctx.form("published").value();
+
+                    // construct the election creation statement
+                    String query = "UPDATE DigiData.election\n" +
+                            "SET user_id = " + uid + ", group_name = '" + group + "', start_date = '" + start + "', end_date = '" + end + "', name = '" + name  + "'\n" +
+                            "WHERE id = '" + eid + "';";
+            System.out.println(query);
+                    // execute the statement to create the election
+                    Database.statement(query);
+
+            return "{\"electionID\": \"" + eid + "\"}";
+        });
+        // address to delete an election
+        app.post("/deleteElection", ctx -> {
+            if (!checkCertificate(ctx)) {
+                return "{\"valid\": \"false\"}";
+            }
+            // grab all the election information from the form fields
+            String eid = ctx.form("eid").value();
+
+            //construct the election deletion statement
+            String query = "DELETE FROM DigiData.election \n" +
+                    "WHERE id = " + eid + ";";
+            // execute the statement
+            Database.statement(query);
+
+            return "{\"electionId\": \"" +eid+"\"}";
         });
         // address to insert a new election into the database
         app.post("/persistElection", ctx -> {

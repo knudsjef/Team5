@@ -59,34 +59,66 @@ public class App {
             String gameID = ctx.form("gameID").value();
             String method = ctx.form("method").value();
             GameContainer gc = gameContainers.get(gameID);
+            CardContainer deck = gc.cardContainers.get("deck");
+            CardContainer discard = gc.cardContainers.get("discard");
+            Boolean wasShuffled = false;
+            int ticker=0;
+            int numberPlayers=0;
             switch(method){
                 case "setup":
                     int numPlayers = Integer.parseInt(ctx.form("numPlayers").value());
                     gc.cardContainers.put("dealer",new CardContainer(0));
-                    for(int i = 0;i<numPlayers;i++){
-                        gc.cardContainers.put("player"+(i+1),new CardContainer(0));
+                    for(int i = 0;i<numPlayers;i++) {
+                        gc.cardContainers.put("player" + (i + 1), new CardContainer(0));
                     }
-                    return gc.cardContainers.get("deck").toJSON();
+                    numberPlayers=numPlayers+1;
+                    return "{\"Shuffled\":\"true\"}";
                 case "deal":
                    Set<String> ks = gc.cardContainers.keySet();
-                   CardContainer deck = gc.cardContainers.get("deck");
                    for(String key:ks){
-                       if(key!="deck") {
+                       if(!key.equals("deck") && !key.equals("discard")) {
                            CardContainer hand = gc.cardContainers.get(key);
+                           if(!hand.cards.isEmpty()) {
+                               for(Card card:hand.cards) {
+                                   discard.add(card);
+                                   hand.cards.remove(card);
+                               }
+                           }
+                           if(deck.cards.size()<2){
+                               for(Card card:discard.cards){
+                                   deck.add(card);
+                                   discard.remove(card);
+                               }
+                               deck.shuffle();
+                               wasShuffled=true;
+                           }
                            hand.cards.add(deck.cards.get(0));
                            deck.cards.remove(0);
                            hand.cards.add(deck.cards.get(0));
                            deck.cards.remove(0);
                        }
                    }
-                   return gc.cardContainers.get("deck").toJSON();
+                   return "{\"Shuffled\":\""+wasShuffled+"\"}";
                 case "hit":
                     String hand = ctx.form("hand").value();
-                    gc.cardContainers.get(hand).add(gc.cardContainers.get("deck").cards.get(0));
-                    gc.cardContainers.get("deck").cards.remove(0);
-                    return gc.cardContainers.get(hand).toJSON();
+                    if(gc.cardContainers.get("deck").cards.isEmpty()){
+                        for(Card card:discard.cards){
+                            deck.add(card);
+                            discard.remove(card);
+                        }
+                        deck.shuffle();
+                        wasShuffled=true;
+                    }
+                    gc.cardContainers.get(hand).add(deck.cards.get(0));
+                    deck.cards.remove(0);
+                    return "{\"Shuffled\":\""+wasShuffled+"\"}";
+                case "stay":
+                    ticker+=1;
+                    break;
                 case "getHand":
                     return gc.cardContainers.get(ctx.form("hand").value()).toJSON();
+                case "update":
+                    break;
                default:
                    break;
            }
@@ -161,5 +193,6 @@ class GameContainer{
         cardContainers = new Hashtable<String,CardContainer>();
         cardContainers.put("deck",new CardContainer(52));
         cardContainers.get("deck").shuffle();
+        cardContainers.put("discard",new CardContainer(0));
     }
 }

@@ -1,2 +1,5 @@
-app\Database.class
+app\Card.class
 app\App.class
+app\CardContainer.class
+app\GameContainer.class
+app\Database.class

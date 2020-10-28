@@ -39,6 +39,14 @@ public class App {
         // allow all cors
         app.decorator(new CorsHandler());
 
+        app.post("/getLeaderboard", (ctx) -> {
+            Database.getConnection();
+            String gameType = ctx.form("gameType").value();
+            ctx.setResponseType(MediaType.json);
+            ResultSet results = Database.query("Select u.real_name, s.score FROM users u, Scores s, Game_Results g WHERE u.user_id = s.user_id && s.game_id = g.game_id && g.game_name = 'BlackJack'");
+            return Database.getJSONFromResultSet(results, "results");
+        });
+
         Hashtable<String,GameContainer> gameContainers = new Hashtable<String,GameContainer>();
 
         app.post("/hostGame", ctx -> {

@@ -17,9 +17,9 @@ public class Database {
             return connection;
         }
 
-        String url = "jdbc:mysql://digidata.czuuwxiu54rk.us-east-1.rds.amazonaws.com:3306";
+        String url = "jdbc:mysql://digidata.czuuwxiu54rk.us-east-1.rds.amazonaws.com:3306/DigiData";
         try  {
-            connection = DriverManager.getConnection(url, "admin", "uhsDF98!");
+            connection = DriverManager.getConnection(url, "admin", "uhsDF98!" ); //
         }
         // Handle any errors that may have occurred.
         catch (SQLException e) {

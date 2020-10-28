@@ -3,6 +3,7 @@ package app;
 import io.jooby.*;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import sun.jvm.hotspot.debugger.bsd.amd64.BsdAMD64CFrame;
 
 import java.io.*;
 import java.sql.ResultSet;
@@ -36,7 +37,7 @@ public class App {
                     .setPort(8090));
         }
 
-        // allow all cors
+       // allow all cors
         app.decorator(new CorsHandler());
 
         Hashtable<String,GameContainer> gameContainers = new Hashtable<String,GameContainer>();
@@ -92,6 +93,19 @@ public class App {
            }
             return "{Blackjack:FinishedMethod}";
         });
+    //address to retrieve a list of the leaderboard depending on game type
+        app.post("/getLeaderboard", ctx ->{
+
+            Database.getConnection();
+
+            String gameType = ctx.form("gameType").value();
+            ctx.setResponseType(MediaType.json);
+
+            ResultSet results = Database.query("Select u.real_name, s.score FROM users u, Scores s, Game_Results g WHERE u.user_id = s.user_id && s.game_id = g.game_id && g.game_name = 'BlackJack'" );
+
+            return Database.getJSONFromResultSet(results, "results");
+
+        } );
 
         // start the server
         app.start();

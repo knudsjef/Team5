@@ -62,7 +62,7 @@ public class App {
             CardContainer deck = gc.cardContainers.get("deck");
             CardContainer discard = gc.cardContainers.get("discard");
             Boolean wasShuffled = false;
-            int ticker=0;
+            String hand = "";
             int numberPlayers=0;
             switch(method){
                 case "setup":
@@ -72,16 +72,16 @@ public class App {
                         gc.cardContainers.put("player" + (i + 1), new CardContainer(0));
                     }
                     numberPlayers=numPlayers+1;
-                    return "{\"Shuffled\":\"true\"}";
+                    return "{\"Shuffled\":\"false\"}";
                 case "deal":
                    Set<String> ks = gc.cardContainers.keySet();
                    for(String key:ks){
                        if(!key.equals("deck") && !key.equals("discard")) {
-                           CardContainer hand = gc.cardContainers.get(key);
-                           if(!hand.cards.isEmpty()) {
-                               for(Card card:hand.cards) {
+                           CardContainer playerHand = gc.cardContainers.get(key);
+                           if(!playerHand.cards.isEmpty()) {
+                               for(Card card:playerHand.cards) {
                                    discard.add(card);
-                                   hand.cards.remove(card);
+                                   playerHand.cards.remove(card);
                                }
                            }
                            if(deck.cards.size()<2){
@@ -92,17 +92,19 @@ public class App {
                                deck.shuffle();
                                wasShuffled=true;
                            }
-                           hand.cards.add(deck.cards.get(0));
+                           playerHand.cards.add(deck.cards.get(0));
                            deck.cards.remove(0);
-                           hand.cards.add(deck.cards.get(0));
+                           playerHand.cards.add(deck.cards.get(0));
+                           playerHand.cards.get(0).isFaceUp=true;
                            deck.cards.remove(0);
                        }
                    }
                    return "{\"Shuffled\":\""+wasShuffled+"\"}";
                 case "hit":
-                    String hand = ctx.form("hand").value();
+                    hand = ctx.form("hand").value();
                     if(gc.cardContainers.get("deck").cards.isEmpty()){
                         for(Card card:discard.cards){
+                            card.isFaceUp=true;
                             deck.add(card);
                             discard.remove(card);
                         }
@@ -113,20 +115,39 @@ public class App {
                     deck.cards.remove(0);
                     return "{\"Shuffled\":\""+wasShuffled+"\"}";
                 case "stay":
-                    ticker+=1;
+                    hand = ctx.form("hand").value();
+                    gc.cardContainers.get(hand).isTurn=false;
+                    Set<String> keyset = gc.cardContainers.keySet();
+                    String[] keyArr = (String[])keyset.toArray();
+                    int findIndex=0;
+                    while(findIndex!=keyArr.length){
+                        if(keyArr[findIndex].equals(hand)){
+                            findIndex++;
+                            break;
+                        }
+                        findIndex++;
+                    }
+                    gc.cardContainers.get(keyArr[findIndex]).isTurn=true;
                     break;
                 case "getHand":
                     return gc.cardContainers.get(ctx.form("hand").value()).toJSON();
-                case "update":
-                    break;
+                case "checkIfTurn":
+                    hand=ctx.form("hand").value();
+                    if(gc.cardContainers.get(hand).isTurn){
+                        return "{\"isTurn\":\"true\"";
+                    }
+                    return "{\"isTurn\":\"false\"";
                default:
                    break;
            }
-            return "{Blackjack:FinishedMethod}";
+            return "{\"Blackjack\":\"FinishedMethod\"}";
         });
 
         // start the server
         app.start();
+    }
+    static void blackjackNextTurn(String id){
+
     }
 }
 
@@ -149,6 +170,7 @@ class Card{
 
 class CardContainer{
     ArrayList<Card> cards;
+    boolean isTurn;
     void shuffle(){
         Collections.shuffle(cards);
     }
@@ -166,6 +188,7 @@ class CardContainer{
             cards.add(new Card(i));
         }
         shuffle();
+        isTurn=false;
     }
     String toJSON(){
         Map<String,Object> data = new HashMap<String,Object>();
@@ -178,10 +201,11 @@ class CardContainer{
     }
 }
 
+
 class GameContainer{
     Hashtable<String,CardContainer> cardContainers;
-    String ID;
-    String gameType;
+    private String ID;
+    private String gameType;
 
     boolean addContainer(String name, int numCards){
        cardContainers.put(name,new CardContainer(numCards));

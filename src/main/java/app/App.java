@@ -158,7 +158,7 @@ public class App {
                         int score = 0, aceCount = 0;
                         //Put dealer logic here
                         dealer.cards.get(0).isFaceUp = true;
-                        for (int i = 0; i < dealer.cards.size() - 1; ++i) {
+                        for (int i = 0; i < dealer.cards.size(); ++i) {
                             int val = dealer.getValue(i, "blackjack");
                             if (val == 1) {
                                 aceCount++;
@@ -177,7 +177,7 @@ public class App {
                             }
                             Card card1 = deck.cards.get(0);
                             card1.isFaceUp = true;
-                            gc.cardContainers.get(hand).add(card1);
+                            dealer.add(card1);
                             deck.cards.remove(0);
                             int val = dealer.getValue(dealer.cards.indexOf(card1), "blackjack");
                             if (val == 1) {
@@ -195,6 +195,7 @@ public class App {
                             }
                         }
                     }
+                    //Add End Round Logic
                     return "{\"isTurn\":\"false\"}";
                 case "showCards":
                     keyset = gc.cardContainers.keySet();
@@ -229,7 +230,7 @@ class Card {
     Map<String, Object> toMap(boolean pub) {
         Map<String, Object> data = new HashMap<String, Object>();
         if (pub && !isFaceUp) {
-            data.put("cardNum", 0);
+            data.put("cardNum", -1);
         } else {
             data.put("cardNum", card);
         }

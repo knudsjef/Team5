@@ -15,7 +15,8 @@ import java.util.*;
  */
 public class App {
     // <certificate random string, [user id, date]
-    private static HashMap<String,String[]> certificates = new HashMap<String,String[]>();
+    private static HashMap<String, String[]> certificates = new HashMap<String, String[]>();
+
     public static void main(final String[] args) throws IOException, SQLException, ClassNotFoundException {
         // create server
         Jooby app = new Jooby();
@@ -47,23 +48,23 @@ public class App {
             return Database.getJSONFromResultSet(results, "results");
         });
 
-        Hashtable<String,GameContainer> gameContainers = new Hashtable<String,GameContainer>();
+        Hashtable<String, GameContainer> gameContainers = new Hashtable<String, GameContainer>();
 
         app.post("/hostGame", ctx -> {
             String gameID = ctx.form("gameID").value();
             String gameType = ctx.form("gameType").value();
-            gameContainers.put(gameID,new GameContainer(gameID,gameType));
+            gameContainers.put(gameID, new GameContainer(gameID, gameType));
             System.out.println(gameID);
-            switch(gameType){
+            switch (gameType) {
                 case "blackjack":
                     return "{\"blackjack\":\"Initialized\"}";
                 case "solitaire":
                     return "{\"solitaire\":\"Initialized\"}";
                 default:
-                    return "{\"invalidGameTypeError\":\"" +gameType+"\"}";
+                    return "{\"invalidGameTypeError\":\"" + gameType + "\"}";
             }
         });
-        app.post("/blackjack", ctx ->{
+        app.post("/blackjack", ctx -> {
             String gameID = ctx.form("gameID").value();
             String method = ctx.form("method").value();
             GameContainer gc = gameContainers.get(gameID);
@@ -73,102 +74,140 @@ public class App {
             String hand = "";
             Set<String> keyset;
             String[] keyArr;
-            int numberPlayers=0;
-            switch(method){
+            int numberPlayers = 0;
+            switch (method) {
                 case "setup":
                     int numPlayers = Integer.parseInt(ctx.form("numPlayers").value());
-                    for(int i = 0;i<numPlayers;i++) {
+                    for (int i = 0; i < numPlayers; i++) {
                         gc.cardContainers.put("player" + (i + 1), new CardContainer(0));
                     }
-                    gc.cardContainers.get("player1").isTurn=true;
-                    gc.cardContainers.put("dealer",new CardContainer(0));
-                    numberPlayers=numPlayers+1;
+                    gc.cardContainers.get("player1").isTurn = true;
+                    gc.cardContainers.put("dealer", new CardContainer(0));
+                    numberPlayers = numPlayers + 1;
                     return "{\"Shuffled\":\"false\"}";
                 case "deal":
-                   Set<String> ks = gc.cardContainers.keySet();
-                   for(String key:ks){
-                       if(!key.equals("deck") && !key.equals("discard")) {
-                           CardContainer playerHand = gc.cardContainers.get(key);
-                           if(!playerHand.cards.isEmpty()) {
-                               for(Card card:playerHand.cards) {
-                                   discard.add(card);
-                                   playerHand.cards.remove(card);
-                               }
-                           }
-                           if(deck.cards.size()<2){
-                               for(Card card:discard.cards){
-                                   deck.add(card);
-                                   discard.remove(card);
-                               }
-                               deck.shuffle();
-                               wasShuffled=true;
-                           }
-                           playerHand.cards.add(deck.cards.get(0));
-                           deck.cards.remove(0);
-                           playerHand.cards.add(deck.cards.get(0));
-                           playerHand.cards.get(1).isFaceUp=true;
-                           deck.cards.remove(0);
-                       }
-                   }
-                   return "{\"Shuffled\":\""+wasShuffled+"\"}";
+                    Set<String> ks = gc.cardContainers.keySet();
+                    for (String key : ks) {
+                        if (!key.equals("deck") && !key.equals("discard")) {
+                            CardContainer playerHand = gc.cardContainers.get(key);
+                            if (!playerHand.cards.isEmpty()) {
+                                for (Card card : playerHand.cards) {
+                                    discard.add(card);
+                                    playerHand.cards.remove(card);
+                                }
+                            }
+                            if (deck.cards.size() < 2) {
+                                for (Card card : discard.cards) {
+                                    deck.add(card);
+                                    discard.remove(card);
+                                }
+                                deck.shuffle();
+                                wasShuffled = true;
+                            }
+                            playerHand.cards.add(deck.cards.get(0));
+                            deck.cards.remove(0);
+                            playerHand.cards.add(deck.cards.get(0));
+                            playerHand.cards.get(1).isFaceUp = true;
+                            deck.cards.remove(0);
+                        }
+                    }
+                    return "{\"Shuffled\":\"" + wasShuffled + "\"}";
                 case "hit":
                     hand = ctx.form("hand").value();
-                    if(gc.cardContainers.get("deck").cards.isEmpty()){
-                        for(Card card:discard.cards){
+                    if (gc.cardContainers.get("deck").cards.isEmpty()) {
+                        for (Card card : discard.cards) {
                             deck.add(card);
                             discard.remove(card);
                         }
                         deck.shuffle();
-                        wasShuffled=true;
+                        wasShuffled = true;
                     }
                     Card card = deck.cards.get(0);
-                    card.isFaceUp=true;
+                    card.isFaceUp = true;
                     gc.cardContainers.get(hand).add(card);
                     deck.cards.remove(0);
-                    return "{\"Shuffled\":\""+wasShuffled+"\"}";
+                    return "{\"Shuffled\":\"" + wasShuffled + "\"}";
                 case "stay":
                     hand = ctx.form("hand").value();
-                    gc.cardContainers.get(hand).isTurn=false;
+                    gc.cardContainers.get(hand).isTurn = false;
                     keyset = gc.cardContainers.keySet();
                     keyArr = keyset.toArray(new String[0]);
-                    int findIndex=2; //Starts at 2 to skip deck and discard hands
-                    while(findIndex!=keyArr.length){
-                        if(keyArr[findIndex].equals(hand)){
+                    int findIndex = 2; //Starts at 2 to skip deck and discard hands
+                    while (findIndex != keyArr.length) {
+                        if (keyArr[findIndex].equals(hand)) {
                             findIndex++;
                             break;
                         }
                         findIndex++;
                     }
-                    if(findIndex >=keyArr.length){
-                        findIndex-=keyArr.length; //Circle back around to the first hand
-                        findIndex+=2; //skip deck and discard
+                    if (findIndex >= keyArr.length) {
+                        findIndex -= keyArr.length; //Circle back around to the first hand
+                        findIndex += 2; //skip deck and discard
                     }
-                    gc.cardContainers.get(keyArr[findIndex]).isTurn=true;
+                    gc.cardContainers.get(keyArr[findIndex]).isTurn = true;
                     break;
                 case "getHand":
                     return gc.cardContainers.get(ctx.form("hand").value()).toJSON(false);
                 case "checkIfTurn":
-                    hand=ctx.form("hand").value();
-                    if(gc.cardContainers.get(hand).isTurn){
+                    hand = ctx.form("hand").value();
+                    if (gc.cardContainers.get(hand).isTurn) {
                         return "{\"isTurn\":\"true\"}";
                     }
-                    if(hand.equals("player1") && gc.cardContainers.get("dealer").isTurn){
+                    if (hand.equals("player1") && gc.cardContainers.get("dealer").isTurn) {
                         CardContainer dealer = gc.cardContainers.get("dealer");
+                        int score = 0, aceCount = 0;
                         //Put dealer logic here
+                        dealer.cards.get(0).isFaceUp = true;
+                        for (int i = 0; i < dealer.cards.size() - 1; ++i) {
+                            int val = dealer.getValue(i, "blackjack");
+                            if (val == 1) {
+                                aceCount++;
+                                score += 11;
+                            } else
+                                score += val;
+                        }
+                        while(score <=16){
+                            if (gc.cardContainers.get("deck").cards.isEmpty()) {
+                                for (Card card1 : discard.cards) {
+                                    deck.add(card1);
+                                    discard.remove(card1);
+                                }
+                                deck.shuffle();
+                                wasShuffled = true;
+                            }
+                            Card card1 = deck.cards.get(0);
+                            card1.isFaceUp = true;
+                            gc.cardContainers.get(hand).add(card1);
+                            deck.cards.remove(0);
+                            int val = dealer.getValue(dealer.cards.indexOf(card1), "blackjack");
+                            if (val == 1) {
+                                aceCount++;
+                                score += 11;
+                            } else
+                                score += val;
+
+                            while (aceCount != 0) {
+                                if (score > 21) {
+                                    score -= 10;
+                                    aceCount -= 1;
+                                } else
+                                    break;
+                            }
+                        }
                     }
                     return "{\"isTurn\":\"false\"}";
                 case "showCards":
                     keyset = gc.cardContainers.keySet();
                     keyArr = keyset.toArray(new String[0]);
                     String json = "{";
-                    for(int i = 2;i<keyArr.length-1;i++){
-                        json+="\""+keyArr[i]+"\""+":"+(gc.cardContainers.get(keyArr[i]).toJSON(true)) + ",";
+                    for (int i = 2; i < keyArr.length - 1; i++) {
+                        json += "\"" + keyArr[i] + "\"" + ":" + (gc.cardContainers.get(keyArr[i]).toJSON(true)) + ",";
                     }
-                    json+="\""+keyArr[keyArr.length-1]+"\""+":"+(gc.cardContainers.get(keyArr[keyArr.length-1]).toJSON(true)) + "}";
+                    json += "\"" + keyArr[keyArr.length - 1] + "\"" + ":" + (gc.cardContainers.get(keyArr[keyArr.length - 1]).toJSON(true)) + "}";
                     return json;
-               default:
-                   break;
-           }
+                default:
+                    break;
+            }
             return "{\"Shuffled\":\"false\"}";
         });
 
@@ -178,53 +217,72 @@ public class App {
 }
 
 
-
-class Card{
+class Card {
     int card;
     boolean isFaceUp;
-    Card(int cardNumber){
-        card=cardNumber;
-        isFaceUp=false;
+
+    Card(int cardNumber) {
+        card = cardNumber;
+        isFaceUp = false;
     }
-    Map<String,Object> toMap(boolean pub){
-        Map<String,Object> data = new HashMap<String,Object>();
-        if(pub && !isFaceUp){
-            data.put("cardNum",0);
-        }
-        else {
+
+    Map<String, Object> toMap(boolean pub) {
+        Map<String, Object> data = new HashMap<String, Object>();
+        if (pub && !isFaceUp) {
+            data.put("cardNum", 0);
+        } else {
             data.put("cardNum", card);
         }
-        data.put("isFaceUp",isFaceUp);
+        data.put("isFaceUp", isFaceUp);
         return data;
     }
 }
 
-class CardContainer{
+class CardContainer {
     ArrayList<Card> cards;
     boolean isTurn;
-    void shuffle(){
+
+    void shuffle() {
         Collections.shuffle(cards);
     }
+
     boolean add(Card card) {
         cards.add(card);
         return true;
     }
-    boolean remove(Card card){
+
+    boolean remove(Card card) {
         cards.remove(card);
         return true;
     }
-    CardContainer(int numCards){
+
+    CardContainer(int numCards) {
         cards = new ArrayList<Card>();
-        for(int i = 1;i<=numCards;i++){
+        for (int i = 0; i < numCards; i++) {
             cards.add(new Card(i));
         }
         shuffle();
-        isTurn=false;
+        isTurn = false;
     }
-    String toJSON(boolean pub){
-        Map<String,Object> data = new HashMap<String,Object>();
-        for(int i = 0;i<cards.size();i++){
-            data.put(""+i,cards.get(i).toMap(pub));
+
+    int getValue(int cardNum, String gameType) {
+        int cardValue = 0;
+        switch (gameType) {
+            case "blackjack":
+                cardValue = (cards.get(cardNum).card % 13) + 1;
+                if (cardValue > 10)
+                    return 10;
+                else
+                    return cardValue;
+            default:
+                return 0;
+        }
+    }
+
+    String toJSON(boolean pub) {
+        Map<String, Object> data = new HashMap<String, Object>();
+        for (int i = 0; i < cards.size(); i++) {
+            data.put("" + i, cards.get(i).toMap(pub));
         }
         JSONObject json = new JSONObject();
         json.putAll(data);
@@ -233,21 +291,22 @@ class CardContainer{
 }
 
 
-class GameContainer{
-    Hashtable<String,CardContainer> cardContainers;
+class GameContainer {
+    Hashtable<String, CardContainer> cardContainers;
     private String ID;
     private String gameType;
 
-    boolean addContainer(String name, int numCards){
-       cardContainers.put(name,new CardContainer(numCards));
-       return true;
+    boolean addContainer(String name, int numCards) {
+        cardContainers.put(name, new CardContainer(numCards));
+        return true;
     }
-    GameContainer(String gameID, String type){
-        ID=gameID;
-        gameType=type;
-        cardContainers = new Hashtable<String,CardContainer>();
-        cardContainers.put("deck",new CardContainer(52));
+
+    GameContainer(String gameID, String type) {
+        ID = gameID;
+        gameType = type;
+        cardContainers = new Hashtable<String, CardContainer>();
+        cardContainers.put("deck", new CardContainer(52));
         cardContainers.get("deck").shuffle();
-        cardContainers.put("discard",new CardContainer(0));
+        cardContainers.put("discard", new CardContainer(0));
     }
 }

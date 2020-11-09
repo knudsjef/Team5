@@ -74,6 +74,7 @@ public class App {
             String hand = "";
             Set<String> keyset;
             String[] keyArr;
+            Card card;
             int numberPlayers = 0;
             switch (method) {
                 case "setup":
@@ -86,20 +87,21 @@ public class App {
                     numberPlayers = numPlayers + 1;
                     return "{\"Shuffled\":\"false\"}";
                 case "deal":
+                    gc.roundActive = true;
                     Set<String> ks = gc.cardContainers.keySet();
                     for (String key : ks) {
                         if (!key.equals("deck") && !key.equals("discard")) {
                             CardContainer playerHand = gc.cardContainers.get(key);
                             if (!playerHand.cards.isEmpty()) {
-                                for (Card card : playerHand.cards) {
-                                    discard.add(card);
-                                    playerHand.cards.remove(card);
+                                for (Card cd : playerHand.cards) {
+                                    discard.add(cd);
+                                    playerHand.cards.remove(cd);
                                 }
                             }
                             if (deck.cards.size() < 2) {
-                                for (Card card : discard.cards) {
-                                    deck.add(card);
-                                    discard.remove(card);
+                                for (Card cd : discard.cards) {
+                                    deck.add(cd);
+                                    discard.remove(cd);
                                 }
                                 deck.shuffle();
                                 wasShuffled = true;
@@ -115,14 +117,14 @@ public class App {
                 case "hit":
                     hand = ctx.form("hand").value();
                     if (gc.cardContainers.get("deck").cards.isEmpty()) {
-                        for (Card card : discard.cards) {
-                            deck.add(card);
-                            discard.remove(card);
+                        for (Card cd : discard.cards) {
+                            deck.add(cd);
+                            discard.remove(cd);
                         }
                         deck.shuffle();
                         wasShuffled = true;
                     }
-                    Card card = deck.cards.get(0);
+                    card = deck.cards.get(0);
                     card.isFaceUp = true;
                     gc.cardContainers.get(hand).add(card);
                     deck.cards.remove(0);
@@ -166,7 +168,7 @@ public class App {
                             } else
                                 score += val;
                         }
-                        while(score <=16){
+                        while (score <= 16) {
                             if (gc.cardContainers.get("deck").cards.isEmpty()) {
                                 for (Card card1 : discard.cards) {
                                     deck.add(card1);
@@ -175,11 +177,11 @@ public class App {
                                 deck.shuffle();
                                 wasShuffled = true;
                             }
-                            Card card1 = deck.cards.get(0);
-                            card1.isFaceUp = true;
-                            dealer.add(card1);
+                            card = deck.cards.get(0);
+                            card.isFaceUp = true;
+                            dealer.add(card);
                             deck.cards.remove(0);
-                            int val = dealer.getValue(dealer.cards.indexOf(card1), "blackjack");
+                            int val = dealer.getValue(dealer.cards.indexOf(card), "blackjack");
                             if (val == 1) {
                                 aceCount++;
                                 score += 11;
@@ -194,8 +196,34 @@ public class App {
                                     break;
                             }
                         }
+                        gc.roundActive = false;
+                        keyset = gc.cardContainers.keySet();
+                        for (String key : keyset) {
+                            if (!key.equals("deck") && !key.equals("discard")) {
+                                CardContainer playerHand = gc.cardContainers.get(key);
+                                for (Card cd : playerHand.cards) {
+                                    cd.isFaceUp = true;
+                                }
+                            }
+                        }
                     }
                     //Add End Round Logic
+                    if (!gc.roundActive) {
+                        int dealerScore = gc.cardContainers.get("dealer").addCards("blackjack");
+                        int playerScore = gc.cardContainers.get(hand).addCards("blackjack");
+                        if(playerScore>21){
+                            return "{\"WinOrLose\":\"Lose\"}";
+                        }
+                        else if(dealerScore>21){
+                            return "{\"WinOrLose\":\"Win\"}";
+                        }
+                        else if(dealerScore > playerScore){
+                            return "{\"WinOrLose\":\"Lose\"}";
+                        }
+                        else{
+                            return "{\"WinOrLose\":\"Tie\"}";
+                        }
+                    }
                     return "{\"isTurn\":\"false\"}";
                 case "showCards":
                     keyset = gc.cardContainers.keySet();
@@ -266,6 +294,31 @@ class CardContainer {
         isTurn = false;
     }
 
+    int addCards(String gameType) {
+        switch (gameType) {
+            case "blackjack":
+                int score = 0,aceCount=0;
+                for (int i = 0; i < cards.size(); ++i) {
+                    int val = getValue(i, gameType);
+                    if (val == 1) {
+                        aceCount++;
+                        score += 11;
+                    } else
+                        score += val;
+                }
+                while (aceCount != 0) {
+                    if (score > 21) {
+                        score -= 10;
+                        aceCount -= 1;
+                    } else
+                        break;
+                }
+                return score;
+            default:
+                return 0;
+        }
+    }
+
     int getValue(int cardNum, String gameType) {
         int cardValue = 0;
         switch (gameType) {
@@ -296,6 +349,7 @@ class GameContainer {
     Hashtable<String, CardContainer> cardContainers;
     private String ID;
     private String gameType;
+    public boolean roundActive;
 
     boolean addContainer(String name, int numCards) {
         cardContainers.put(name, new CardContainer(numCards));
@@ -305,6 +359,7 @@ class GameContainer {
     GameContainer(String gameID, String type) {
         ID = gameID;
         gameType = type;
+        roundActive = true;
         cardContainers = new Hashtable<String, CardContainer>();
         cardContainers.put("deck", new CardContainer(52));
         cardContainers.get("deck").shuffle();

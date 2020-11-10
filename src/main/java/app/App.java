@@ -244,17 +244,20 @@ public class App {
         app.start();
     }
 }
-
-
+/** Card object to hold data of each individual card
+ * The integer value will be between 0-51 to represent one of the 52 cards in a deck
+ * The boolean value determines if the card will be displayed face-up or face-down **/
 class Card {
     int card;
     boolean isFaceUp;
 
+    /** By default the card will be created face-down **/
     Card(int cardNumber) {
         card = cardNumber;
         isFaceUp = false;
     }
 
+    /** **/
     Map<String, Object> toMap(boolean pub) {
         Map<String, Object> data = new HashMap<String, Object>();
         if (pub && !isFaceUp) {
@@ -267,24 +270,33 @@ class Card {
     }
 }
 
+/** This object is a container that will hold multiple card objects. In a game it will be
+ * used for the deck, players hands, a middle pile, ect.
+ * It has an arraylist to hold the card objects.
+ * It has a boolean, "isTurn" to be used for player hands to determine who's turn it is **/
 class CardContainer {
     ArrayList<Card> cards;
     boolean isTurn;
 
+    /** A function that randomly shuffles the card container **/
     void shuffle() {
         Collections.shuffle(cards);
     }
 
+    /** A function that adds a card to the container **/
     boolean add(Card card) {
         cards.add(card);
         return true;
     }
 
+    /** A function that adds a card to the container **/
     boolean remove(Card card) {
         cards.remove(card);
         return true;
     }
 
+    /** Constructor, It creates an arraylist and populates it with the number of cards passed to it.
+     * Normally this would be used to create a standard 52 card deck at the start of a game but could have other uses. **/
     CardContainer(int numCards) {
         cards = new ArrayList<Card>();
         for (int i = 0; i < numCards; i++) {
@@ -294,6 +306,8 @@ class CardContainer {
         isTurn = false;
     }
 
+    /** A function to get the score of players hand. Different games will have different scoring so the there is a
+     * switch statement to determine the scoring needed for each game **/
     int addCards(String gameType) {
         switch (gameType) {
             case "blackjack":
@@ -319,6 +333,7 @@ class CardContainer {
         }
     }
 
+    /** A function used by addCards to determine the value of an individual card, also based on a game type **/
     int getValue(int cardNum, String gameType) {
         int cardValue = 0;
         switch (gameType) {
@@ -333,6 +348,7 @@ class CardContainer {
         }
     }
 
+    /** Converts the arraylist to json so it can be sent to the frontend web application **/
     String toJSON(boolean pub) {
         Map<String, Object> data = new HashMap<String, Object>();
         for (int i = 0; i < cards.size(); i++) {
@@ -344,18 +360,24 @@ class CardContainer {
     }
 }
 
-
+/** This is a game container object to hold multiple card containers
+ * It consists of a hashtable to store the card containers,
+ * a string ID to identify each game,
+ * a string gameType to distinguish the type of game, ie Blackjack,
+ * and a boolean variable to tell if the game is still active**/
 class GameContainer {
     Hashtable<String, CardContainer> cardContainers;
     private String ID;
     private String gameType;
     public boolean roundActive;
 
+    /** This adds a card container to the hashtable **/
     boolean addContainer(String name, int numCards) {
         cardContainers.put(name, new CardContainer(numCards));
         return true;
     }
 
+    /** Constructor, by default it sets the roundActive to true and creates a 'deck' with 52 cards and shuffles them **/
     GameContainer(String gameID, String type) {
         ID = gameID;
         gameType = type;

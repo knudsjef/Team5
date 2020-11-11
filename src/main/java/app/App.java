@@ -54,7 +54,6 @@ public class App {
             String gameID = ctx.form("gameID").value();
             String gameType = ctx.form("gameType").value();
             gameContainers.put(gameID, new GameContainer(gameID, gameType));
-            System.out.println(gameID);
             switch (gameType) {
                 case "blackjack":
                     return "{\"blackjack\":\"Initialized\"}";
@@ -87,67 +86,76 @@ public class App {
                     numberPlayers = numPlayers + 1;
                     return "{\"Shuffled\":\"false\"}";
                 case "deal":
-                    gc.roundActive = true;
-                    Set<String> ks = gc.cardContainers.keySet();
-                    for (String key : ks) {
-                        if (!key.equals("deck") && !key.equals("discard")) {
-                            CardContainer playerHand = gc.cardContainers.get(key);
-                            if (!playerHand.cards.isEmpty()) {
-                                for (Card cd : playerHand.cards) {
-                                    discard.add(cd);
-                                    playerHand.cards.remove(cd);
+                    if(!gc.roundActive) {
+                        gc.roundActive = true;
+                        Set<String> ks = gc.cardContainers.keySet();
+                        for (String key : ks) {
+                            if (!key.equals("deck") && !key.equals("discard")) {
+                                CardContainer playerHand = gc.cardContainers.get(key);
+                                if (!playerHand.cards.isEmpty()) {
+                                    for (Card cd : playerHand.cards) {
+                                        discard.add(cd);
+                                    }
+                                    playerHand.cards.clear();
                                 }
-                            }
-                            if (deck.cards.size() < 2) {
-                                for (Card cd : discard.cards) {
-                                    deck.add(cd);
-                                    discard.remove(cd);
+                                if (deck.cards.size() < 2) {
+                                    for (Card cd : discard.cards) {
+                                        deck.add(cd);
+                                    }
+                                    discard.cards.clear();
+                                    deck.shuffle();
+                                    wasShuffled = true;
                                 }
-                                deck.shuffle();
-                                wasShuffled = true;
+                                playerHand.cards.add(deck.cards.get(0));
+                                deck.cards.remove(0);
+                                playerHand.cards.add(deck.cards.get(0));
+                                playerHand.cards.get(1).isFaceUp = true;
+                                deck.cards.remove(0);
                             }
-                            playerHand.cards.add(deck.cards.get(0));
-                            deck.cards.remove(0);
-                            playerHand.cards.add(deck.cards.get(0));
-                            playerHand.cards.get(1).isFaceUp = true;
-                            deck.cards.remove(0);
                         }
+                        return "{\"Shuffled\":\"" + wasShuffled + "\"}";
                     }
-                    return "{\"Shuffled\":\"" + wasShuffled + "\"}";
+                    return "{\"AlreadyDealt\":\"true\"}";
                 case "hit":
                     hand = ctx.form("hand").value();
-                    if (gc.cardContainers.get("deck").cards.isEmpty()) {
-                        for (Card cd : discard.cards) {
-                            deck.add(cd);
-                            discard.remove(cd);
+                    if(gc.cardContainers.get(hand).isTurn) {
+                        if (gc.cardContainers.get("deck").cards.isEmpty()) {
+                            for (Card cd : discard.cards) {
+                                deck.add(cd);
+                                discard.remove(cd);
+                            }
+                            deck.shuffle();
+                            wasShuffled = true;
                         }
-                        deck.shuffle();
-                        wasShuffled = true;
+                        card = deck.cards.get(0);
+                        card.isFaceUp = true;
+                        gc.cardContainers.get(hand).add(card);
+                        deck.cards.remove(0);
+                        return "{\"Shuffled\":\"" + wasShuffled + "\"}";
                     }
-                    card = deck.cards.get(0);
-                    card.isFaceUp = true;
-                    gc.cardContainers.get(hand).add(card);
-                    deck.cards.remove(0);
-                    return "{\"Shuffled\":\"" + wasShuffled + "\"}";
+                    return "{\"Error\":\"NotYourTurn\"}";
                 case "stay":
                     hand = ctx.form("hand").value();
-                    gc.cardContainers.get(hand).isTurn = false;
-                    keyset = gc.cardContainers.keySet();
-                    keyArr = keyset.toArray(new String[0]);
-                    int findIndex = 2; //Starts at 2 to skip deck and discard hands
-                    while (findIndex != keyArr.length) {
-                        if (keyArr[findIndex].equals(hand)) {
+                    if(gc.cardContainers.get(hand).isTurn) {
+                        gc.cardContainers.get(hand).isTurn = false;
+                        keyset = gc.cardContainers.keySet();
+                        keyArr = keyset.toArray(new String[0]);
+                        int findIndex = 2; //Starts at 2 to skip deck and discard hands
+                        while (findIndex != keyArr.length) {
+                            if (keyArr[findIndex].equals(hand)) {
+                                findIndex++;
+                                break;
+                            }
                             findIndex++;
-                            break;
                         }
-                        findIndex++;
+                        if (findIndex >= keyArr.length) {
+                            findIndex -= keyArr.length; //Circle back around to the first hand
+                            findIndex += 2; //skip deck and discard
+                        }
+                        gc.cardContainers.get(keyArr[findIndex]).isTurn = true;
+                        break;
                     }
-                    if (findIndex >= keyArr.length) {
-                        findIndex -= keyArr.length; //Circle back around to the first hand
-                        findIndex += 2; //skip deck and discard
-                    }
-                    gc.cardContainers.get(keyArr[findIndex]).isTurn = true;
-                    break;
+                    return "{\"Error\":\"NotYourTurn\"}";
                 case "getHand":
                     return gc.cardContainers.get(ctx.form("hand").value()).toJSON(false);
                 case "checkIfTurn":
@@ -207,7 +215,6 @@ public class App {
                             }
                         }
                     }
-                    //Add End Round Logic
                     if (!gc.roundActive) {
                         int dealerScore = gc.cardContainers.get("dealer").addCards("blackjack");
                         int playerScore = gc.cardContainers.get(hand).addCards("blackjack");
@@ -257,7 +264,7 @@ class Card {
         isFaceUp = false;
     }
 
-    /** **/
+    /** Changes card to a map to make it easier to convert to json**/
     Map<String, Object> toMap(boolean pub) {
         Map<String, Object> data = new HashMap<String, Object>();
         if (pub && !isFaceUp) {
@@ -381,7 +388,7 @@ class GameContainer {
     GameContainer(String gameID, String type) {
         ID = gameID;
         gameType = type;
-        roundActive = true;
+        roundActive = false;
         cardContainers = new Hashtable<String, CardContainer>();
         cardContainers.put("deck", new CardContainer(52));
         cardContainers.get("deck").shuffle();

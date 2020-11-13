@@ -89,6 +89,8 @@ public class App {
                     if(!gc.roundActive) {
                         gc.roundActive = true;
                         Set<String> ks = gc.cardContainers.keySet();
+                        gc.cardContainers.get("player1").isTurn=true;
+
                         for (String key : ks) {
                             if (!key.equals("deck") && !key.equals("discard")) {
                                 CardContainer playerHand = gc.cardContainers.get(key);
@@ -205,6 +207,7 @@ public class App {
                             }
                         }
                         gc.roundActive = false;
+                        gc.cardContainers.get("dealer").isTurn=false;
                         keyset = gc.cardContainers.keySet();
                         for (String key : keyset) {
                             if (!key.equals("deck") && !key.equals("discard")) {

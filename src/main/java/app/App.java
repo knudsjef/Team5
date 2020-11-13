@@ -354,6 +354,11 @@ class CardContainer {
         switch (gameType) {
             case "blackjack":
                 cardValue = (cards.get(cardNum).card % 13);
+                System.out.println(cardValue);
+                //Temp fix for issue with score for King
+                if(cardValue == 0){
+                    return 10;
+                }
                 if (cardValue > 10)
                     return 10;
                 else

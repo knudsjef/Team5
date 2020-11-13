@@ -44,7 +44,7 @@ public class App {
             Database.getConnection();
             String gameType = ctx.form("gameType").value();
             ctx.setResponseType(MediaType.json);
-            ResultSet results = Database.query("Select u.real_name, s.score FROM users u, Scores s, Game_Results g WHERE u.user_id = s.user_id && s.game_id = g.game_id && g.game_name = 'BlackJack'");
+            ResultSet results = Database.query("Select u.real_name, s.score FROM users u, Scores s, Game_Results g WHERE u.user_id = s.user_id && s.game_id = g.game_id && g.game_name = '"+ gameType + "' ORDER BY score DESC");
             return Database.getJSONFromResultSet(results, "results");
         });
 

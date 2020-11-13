@@ -221,17 +221,22 @@ public class App {
                     if (!gc.roundActive) {
                         int dealerScore = gc.cardContainers.get("dealer").addCards("blackjack");
                         int playerScore = gc.cardContainers.get(hand).addCards("blackjack");
+                        System.out.println("Player "+playerScore+" Dealer "+dealerScore);
+
                         if(playerScore>21){
-                            return "{\"WinOrLose\":\"Lose\"}";
+                            return "{\"WinOrLose\":\"Lose\",\"PlayerScore\":\""+playerScore+"\",\"DealerScore\":\""+dealerScore+"\"}";
                         }
                         else if(dealerScore>21){
-                            return "{\"WinOrLose\":\"Win\"}";
+                            return "{\"WinOrLose\":\"Win\",\"PlayerScore\":\""+playerScore+"\",\"DealerScore\":\""+dealerScore+"\"}";
                         }
                         else if(dealerScore > playerScore){
-                            return "{\"WinOrLose\":\"Lose\"}";
+                            return "{\"WinOrLose\":\"Lose\",\"PlayerScore\":\""+playerScore+"\",\"DealerScore\":\""+dealerScore+"\"}";
+                        }
+                        else if(playerScore > dealerScore){
+                            return "{\"WinOrLose\":\"Win\",\"PlayerScore\":\""+playerScore+"\",\"DealerScore\":\""+dealerScore+"\"}";
                         }
                         else{
-                            return "{\"WinOrLose\":\"Tie\"}";
+                            return "{\"WinOrLose\":\"Tie\",\"PlayerScore\":\""+playerScore+"\",\"DealerScore\":\""+dealerScore+"\"}";
                         }
                     }
                     return "{\"isTurn\":\"false\"}";
@@ -348,7 +353,7 @@ class CardContainer {
         int cardValue = 0;
         switch (gameType) {
             case "blackjack":
-                cardValue = (cards.get(cardNum).card % 13) + 1;
+                cardValue = (cards.get(cardNum).card % 13);
                 if (cardValue > 10)
                     return 10;
                 else

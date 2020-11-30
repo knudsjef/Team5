@@ -51,14 +51,14 @@ public class App {
         Hashtable<String, GameContainer> gameContainers = new Hashtable<String, GameContainer>();
 
         app.post("/hostGame", ctx -> {
-            String gameID = ctx.form("gameID").value();
+            String gameID = "" + (gameContainers.keySet().size() + 1);
             String gameType = ctx.form("gameType").value();
             gameContainers.put(gameID, new GameContainer(gameID, gameType));
             switch (gameType) {
                 case "blackjack":
-                    return "{\"blackjack\":\"Initialized\"}";
+                    return "{\"blackjack\":\""+gameID+"\"}";
                 case "solitaire":
-                    return "{\"solitaire\":\"Initialized\"}";
+                    return "{\"solitaire\":\""+gameID+"\"}";
                 default:
                     return "{\"invalidGameTypeError\":\"" + gameType + "\"}";
             }
@@ -85,6 +85,16 @@ public class App {
                     gc.cardContainers.put("dealer", new CardContainer(0));
                     numberPlayers = numPlayers + 1;
                     return "{\"Shuffled\":\"false\"}";
+                case "getGames":
+                    String jsonStr="{";
+                    for(String game:gameContainers.keySet()){
+                        int playerNum = gameContainers.get(game).cardContainers.keySet().size()-3;
+                        jsonStr+="\""+gameContainers.get(game).getID()+"\":\""+playerNum+"\",";
+                    }
+
+                    jsonStr = jsonStr.substring(0,jsonStr.length()-1) + "}";
+                    System.out.println(jsonStr);
+                    return jsonStr;
                 case "deal":
                     if(!gc.roundActive) {
                         gc.roundActive = true;
@@ -355,14 +365,10 @@ class CardContainer {
             case "blackjack":
                 cardValue = (cards.get(cardNum).card % 13);
                 System.out.println(cardValue);
-                //Temp fix for issue with score for King
-                if(cardValue == 0){
-                    return 10;
-                }
-                if (cardValue > 10)
+                if (cardValue > 9)
                     return 10;
                 else
-                    return cardValue;
+                    return cardValue+1;
             default:
                 return 0;
         }
@@ -397,6 +403,7 @@ class GameContainer {
         return true;
     }
 
+    String getID(){return ID;}
     /** Constructor, by default it sets the roundActive to true and creates a 'deck' with 52 cards and shuffles them **/
     GameContainer(String gameID, String type) {
         ID = gameID;

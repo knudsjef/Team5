@@ -40,6 +40,7 @@ public class App {
         // allow all cors
         app.decorator(new CorsHandler());
 
+        //sends query to mySql server to get leaderboard
         app.post("/getLeaderboard", (ctx) -> {
             Database.getConnection();
             String gameType = ctx.form("gameType").value();
@@ -63,6 +64,65 @@ public class App {
                     return "{\"invalidGameTypeError\":\"" + gameType + "\"}";
             }
         });
+
+        app.post("/loginUser", ctx -> {
+            String email = ctx.form("email").value();
+            String hash = ctx.form("hash").value();
+
+            String query = "SELECT user_id,real_name,username FROM users WHERE email = \"" + email + "\" AND password_hash = \"" + hash +"\"";
+            ctx.setResponseType(MediaType.json);
+
+            // gather results from the database
+            ResultSet results = Database.query(query);
+
+            //Auto generate certificate key for logging in
+            String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            StringBuilder cert = new StringBuilder();
+            Random rnd = new Random();
+            while (cert.length() <= 128) { // length of the random string.
+                int index = (int) (rnd.nextFloat() * chars.length());
+                cert.append(chars.charAt(index));
+            }
+            String certKey = cert.toString();
+
+            //Appends certificate to results
+            HashMap<String, Object> res = Database.getJSON(results,"results");
+            res.put("certificate",certKey);
+
+            java.sql.Date date = new java.sql.Date(Calendar.getInstance().getTime().getTime());
+            results.first();
+            String[] values = {""+date.getTime(),results.getString(1)};
+
+            certificates.put(certKey,values);
+
+            // return the results as json for easy processing on the frontend
+            return JSONValue.toJSONString(res);
+        });
+
+        app.post("/persistInsertUser", ctx -> {
+            String username = ctx.form("username").value();
+            String name = ctx.form("real_name").value();
+            String hash = ctx.form("hash").value();
+            String email = ctx.form("email").value();
+            String checkUser = "SELECT Count(user_id) FROM users WHERE email = "+email;
+            ResultSet check = Database.query(checkUser);
+            check.next();
+            Integer checkBool = check.getInt(1);
+            if(checkBool == 0) {
+                String query = "INSERT INTO users (real_name, username, password_hash, email) VALUES ";
+                query += "(" + name + ", " + username + "," + hash + ", " + email + ")";
+                ctx.setResponseType(MediaType.json);
+                // gather results from the database
+                int results = Database.statement(query);
+                // return the results as json for easy processing on the frontend
+                String findNewUser = "SELECT user_id FROM users WHERE email = " + email;
+                ResultSet findID = Database.query(findNewUser);
+                findID.next();
+                return results;
+            }
+            return "{\"error\": \"User already exists\"}";
+        });
+
         app.post("/blackjack", ctx -> {
             String gameID = ctx.form("gameID").value();
             String method = ctx.form("method").value();

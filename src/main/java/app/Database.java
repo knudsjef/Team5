@@ -12,6 +12,7 @@ public class Database {
 
     private static Connection connection = null;
 
+    //establishes connection with database
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
         if (connection!=null && !connection.isClosed()) {
             return connection;
@@ -30,10 +31,12 @@ public class Database {
         return connection;
     }
 
+    //executes query on database
     public static ResultSet query(String query) throws SQLException, ClassNotFoundException {
         return Database.getConnection().createStatement().executeQuery(query);
     }
 
+    //executes change to database
     public static int statement(String query) throws SQLException, ClassNotFoundException {
         return Database.getConnection().prepareStatement(query).executeUpdate();
     }

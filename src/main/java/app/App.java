@@ -67,8 +67,9 @@ public class App {
 
         app.post("/joinGame",ctx -> {
             String gameID = ctx.form("gameID").value();
-            int playerID = gameContainers.get(gameID).cardContainers.keySet().size()+1;
-            gameContainers.get(gameID).addContainer("player"+playerID,0);
+            gameContainers.get(gameID).numPlayers+=1;
+            String playerID = "player" + (gameContainers.get(gameID).numPlayers);
+            gameContainers.get(gameID).addContainer(playerID,0);
             return "{\"playerID\":\""+playerID+"\"}";
         });
 
@@ -135,8 +136,7 @@ public class App {
             String jsonStr="{";
             for(String game:gameContainers.keySet()){
                 if(gameContainers.get(game).getType().equals(gameType)) {
-                    int playerNum = gameContainers.get(game).cardContainers.keySet().size() - 3;
-                    jsonStr += "\"" + gameContainers.get(game).getID() + "\":\"" + playerNum + "\",";
+                    jsonStr += "\"" + gameContainers.get(game).getID() + "\":\"" + gameContainers.get(game).numPlayers + "\",";
                 }
             }
             if(jsonStr.length()==1){
@@ -161,10 +161,11 @@ public class App {
 //            int numberPlayers = 0;
             switch (method) {
                 case "setup":
-                    int numPlayers = gc.cardContainers.keySet().size();
+//                    int numPlayers = gc.cardContainers.keySet().size();
 //                    for (int i = 0; i < numPlayers; i++) {
 //                        gc.cardContainers.put("player" + (i + 1), new CardContainer(0));
 //                    }
+                    System.out.println(gc.cardContainers.keySet());
                     gc.cardContainers.get("player1").isTurn = true;
                     gc.cardContainers.put("dealer", new CardContainer(0));
 //                    numberPlayers = numPlayers + 1;
@@ -174,7 +175,6 @@ public class App {
                         gc.roundActive = true;
                         Set<String> ks = gc.cardContainers.keySet();
                         gc.cardContainers.get("player1").isTurn=true;
-
                         for (String key : ks) {
                             if (!key.equals("deck") && !key.equals("discard")) {
                                 CardContainer playerHand = gc.cardContainers.get(key);
@@ -469,6 +469,7 @@ class GameContainer {
     Hashtable<String, CardContainer> cardContainers;
     private String ID;
     private String gameType;
+    public int numPlayers;
     public boolean roundActive;
 
     /** This adds a card container to the hashtable **/
@@ -484,6 +485,7 @@ class GameContainer {
     GameContainer(String gameID, String type) {
         ID = gameID;
         gameType = type;
+        numPlayers = 0;
         roundActive = false;
         cardContainers = new Hashtable<String, CardContainer>();
         cardContainers.put("deck", new CardContainer(52));

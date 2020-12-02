@@ -52,7 +52,7 @@ public class App {
         Hashtable<String, GameContainer> gameContainers = new Hashtable<String, GameContainer>();
 
         app.post("/hostGame", ctx -> {
-            String gameID = "" + (gameContainers.keySet().size() + 1);
+            String gameID = "" + (gameContainers.isEmpty()?1:(gameContainers.keySet().size() + 1));
             String gameType = ctx.form("gameType").value();
             gameContainers.put(gameID, new GameContainer(gameID, gameType));
             switch (gameType) {
@@ -63,6 +63,13 @@ public class App {
                 default:
                     return "{\"invalidGameTypeError\":\"" + gameType + "\"}";
             }
+        });
+
+        app.post("/joinGame",ctx -> {
+            String gameID = ctx.form("gameID").value();
+            int playerID = gameContainers.get(gameID).cardContainers.keySet().size()+1;
+            gameContainers.get(gameID).addContainer("player"+playerID,0);
+            return "{\"playerID\":\""+playerID+"\"}";
         });
 
         app.post("/loginUser", ctx -> {
@@ -123,6 +130,23 @@ public class App {
             return "{\"error\": \"User already exists\"}";
         });
 
+        app.post("/getGames",ctx->{
+            String gameType = ctx.form("gameType").value();
+            String jsonStr="{";
+            for(String game:gameContainers.keySet()){
+                if(gameContainers.get(game).getType().equals(gameType)) {
+                    int playerNum = gameContainers.get(game).cardContainers.keySet().size() - 3;
+                    jsonStr += "\"" + gameContainers.get(game).getID() + "\":\"" + playerNum + "\",";
+                }
+            }
+            if(jsonStr.length()==1){
+                return "{\"NoGamesAvailable\":\"true\"}";
+            }
+            jsonStr = jsonStr.substring(0,jsonStr.length()-1) + "}";
+            System.out.println(jsonStr);
+            return jsonStr;
+        });
+
         app.post("/blackjack", ctx -> {
             String gameID = ctx.form("gameID").value();
             String method = ctx.form("method").value();
@@ -134,27 +158,17 @@ public class App {
             Set<String> keyset;
             String[] keyArr;
             Card card;
-            int numberPlayers = 0;
+//            int numberPlayers = 0;
             switch (method) {
                 case "setup":
-                    int numPlayers = Integer.parseInt(ctx.form("numPlayers").value());
-                    for (int i = 0; i < numPlayers; i++) {
-                        gc.cardContainers.put("player" + (i + 1), new CardContainer(0));
-                    }
+                    int numPlayers = gc.cardContainers.keySet().size();
+//                    for (int i = 0; i < numPlayers; i++) {
+//                        gc.cardContainers.put("player" + (i + 1), new CardContainer(0));
+//                    }
                     gc.cardContainers.get("player1").isTurn = true;
                     gc.cardContainers.put("dealer", new CardContainer(0));
-                    numberPlayers = numPlayers + 1;
+//                    numberPlayers = numPlayers + 1;
                     return "{\"Shuffled\":\"false\"}";
-                case "getGames":
-                    String jsonStr="{";
-                    for(String game:gameContainers.keySet()){
-                        int playerNum = gameContainers.get(game).cardContainers.keySet().size()-3;
-                        jsonStr+="\""+gameContainers.get(game).getID()+"\":\""+playerNum+"\",";
-                    }
-
-                    jsonStr = jsonStr.substring(0,jsonStr.length()-1) + "}";
-                    System.out.println(jsonStr);
-                    return jsonStr;
                 case "deal":
                     if(!gc.roundActive) {
                         gc.roundActive = true;
@@ -462,6 +476,8 @@ class GameContainer {
         cardContainers.put(name, new CardContainer(numCards));
         return true;
     }
+
+    String getType(){return gameType;}
 
     String getID(){return ID;}
     /** Constructor, by default it sets the roundActive to true and creates a 'deck' with 52 cards and shuffles them **/

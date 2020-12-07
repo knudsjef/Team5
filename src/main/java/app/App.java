@@ -177,8 +177,6 @@ public class App {
 
                         keyArr = ks.toArray(new String[0]);
                         for(String key: keyArr){
-                            System.out.println(key);
-                            System.out.println(key.substring(0,1));
                             if(key.substring(0,1).equals("p")){
                                 handOrder.add(key);
                             }
@@ -235,8 +233,6 @@ public class App {
                     Set<String> ks = gc.cardContainers.keySet();
                     keyArr = ks.toArray(new String[0]);
                     for(String key: keyArr){
-                        System.out.println(key);
-                        System.out.println(key.substring(0,1));
                         if(key.substring(0,1).equals("p")){
                             handOrder.add(key);
                         }
@@ -251,7 +247,7 @@ public class App {
                             gc.cardContainers.get("dealer").isTurn=true;
                         }
                         else{
-                            gc.cardContainers.get(handOrder.get(index));
+                            gc.cardContainers.get(handOrder.get(index)).isTurn=true;
                         }
 //                        int findIndex = 2; //Starts at 2 to skip deck and discard hands
 //                        while (findIndex != keyArr.length) {
@@ -279,7 +275,6 @@ public class App {
                     if (hand.equals("player1") && gc.cardContainers.get("dealer").isTurn) {
                         CardContainer dealer = gc.cardContainers.get("dealer");
                         int score = 0, aceCount = 0;
-                        //Put dealer logic here
                         dealer.cards.get(0).isFaceUp = true;
                         for (int i = 0; i < dealer.cards.size(); ++i) {
                             int val = dealer.getValue(i, "blackjack");

@@ -157,6 +157,7 @@ public class App {
             String hand = "";
             Set<String> keyset;
             String[] keyArr;
+            ArrayList<String> handOrder=new ArrayList<String>();
             Card card;
 //            int numberPlayers = 0;
             switch (method) {
@@ -168,13 +169,22 @@ public class App {
                     System.out.println(gc.cardContainers.keySet());
                     gc.cardContainers.get("player1").isTurn = true;
                     gc.cardContainers.put("dealer", new CardContainer(0));
-//                    numberPlayers = numPlayers + 1;
                     return "{\"Shuffled\":\"false\"}";
                 case "deal":
                     if(!gc.roundActive) {
                         gc.roundActive = true;
                         Set<String> ks = gc.cardContainers.keySet();
-                        gc.cardContainers.get("player1").isTurn=true;
+
+                        keyArr = ks.toArray(new String[0]);
+                        for(String key: keyArr){
+                            System.out.println(key);
+                            System.out.println(key.substring(0,1));
+                            if(key.substring(0,1).equals("p")){
+                                handOrder.add(key);
+                            }
+                        }
+                        gc.cardContainers.get(handOrder.get(0)).isTurn=true;
+//                        gc.cardContainers.get("player1").isTurn=true;
                         for (String key : ks) {
                             if (!key.equals("deck") && !key.equals("discard")) {
                                 CardContainer playerHand = gc.cardContainers.get(key);
@@ -222,23 +232,40 @@ public class App {
                     return "{\"Error\":\"NotYourTurn\"}";
                 case "stay":
                     hand = ctx.form("hand").value();
+                    Set<String> ks = gc.cardContainers.keySet();
+                    keyArr = ks.toArray(new String[0]);
+                    for(String key: keyArr){
+                        System.out.println(key);
+                        System.out.println(key.substring(0,1));
+                        if(key.substring(0,1).equals("p")){
+                            handOrder.add(key);
+                        }
+                    }
+
                     if(gc.cardContainers.get(hand).isTurn) {
                         gc.cardContainers.get(hand).isTurn = false;
-                        keyset = gc.cardContainers.keySet();
-                        keyArr = keyset.toArray(new String[0]);
-                        int findIndex = 2; //Starts at 2 to skip deck and discard hands
-                        while (findIndex != keyArr.length) {
-                            if (keyArr[findIndex].equals(hand)) {
-                                findIndex++;
-                                break;
-                            }
-                            findIndex++;
+//                        keyset = gc.cardContainers.keySet();
+//                        keyArr = keyset.toArray(new String[0]);
+                        int index = handOrder.indexOf(hand)+1;
+                        if(index>=handOrder.size()){
+                            gc.cardContainers.get("dealer").isTurn=true;
                         }
-                        if (findIndex >= keyArr.length) {
-                            findIndex -= keyArr.length; //Circle back around to the first hand
-                            findIndex += 2; //skip deck and discard
+                        else{
+                            gc.cardContainers.get(handOrder.get(index));
                         }
-                        gc.cardContainers.get(keyArr[findIndex]).isTurn = true;
+//                        int findIndex = 2; //Starts at 2 to skip deck and discard hands
+//                        while (findIndex != keyArr.length) {
+//                            if (keyArr[findIndex].equals(hand)) {
+//                                findIndex++;
+//                                break;
+//                            }
+//                            findIndex++;
+//                        }
+//                        if (findIndex >= keyArr.length) {
+//                            findIndex -= keyArr.length; //Circle back around to the first hand
+//                            findIndex += 2; //skip deck and discard
+//                        }
+//                        gc.cardContainers.get(keyArr[findIndex]).isTurn = true;
                         break;
                     }
                     return "{\"Error\":\"NotYourTurn\"}";

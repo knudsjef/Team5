@@ -173,17 +173,16 @@ public class App {
                 case "deal":
                     if(!gc.roundActive) {
                         gc.roundActive = true;
-                        Set<String> ks = gc.cardContainers.keySet();
-
-                        keyArr = ks.toArray(new String[0]);
+                        keyset = gc.cardContainers.keySet();
+                        keyArr = keyset.toArray(new String[0]);
                         for(String key: keyArr){
                             if(key.substring(0,1).equals("p")){
                                 handOrder.add(key);
                             }
                         }
                         gc.cardContainers.get(handOrder.get(0)).isTurn=true;
-//                        gc.cardContainers.get("player1").isTurn=true;
-                        for (String key : ks) {
+
+                        for (String key : keyset) {
                             if (!key.equals("deck") && !key.equals("discard")) {
                                 CardContainer playerHand = gc.cardContainers.get(key);
                                 if (!playerHand.cards.isEmpty()) {
@@ -349,11 +348,17 @@ public class App {
                 case "showCards":
                     keyset = gc.cardContainers.keySet();
                     keyArr = keyset.toArray(new String[0]);
-                    String json = "{";
-                    for (int i = 2; i < keyArr.length - 1; i++) {
-                        json += "\"" + keyArr[i] + "\"" + ":" + (gc.cardContainers.get(keyArr[i]).toJSON(true)) + ",";
+                    for(String key: keyArr){
+                        if(key.substring(0,1).equals("p")){
+                            handOrder.add(key);
+                        }
                     }
-                    json += "\"" + keyArr[keyArr.length - 1] + "\"" + ":" + (gc.cardContainers.get(keyArr[keyArr.length - 1]).toJSON(true)) + "}";
+                    handOrder.add("dealer");
+                    String json = "{";
+                    for (String key: handOrder) {
+                        json += "\"" + key + "\"" + ":" + (gc.cardContainers.get(key).toJSON(true)) + ",";
+                    }
+                    json=json.substring(0,json.length()-1) + "}";
                     return json;
                 default:
                     break;

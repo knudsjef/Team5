@@ -7,7 +7,6 @@ import org.json.simple.JSONValue;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLOutput;
 import java.util.*;
 
 /**
@@ -159,15 +158,9 @@ public class App {
             String[] keyArr;
             ArrayList<String> handOrder=new ArrayList<String>();
             Card card;
-//            int numberPlayers = 0;
             switch (method) {
                 case "setup":
-//                    int numPlayers = gc.cardContainers.keySet().size();
-//                    for (int i = 0; i < numPlayers; i++) {
-//                        gc.cardContainers.put("player" + (i + 1), new CardContainer(0));
-//                    }
                     System.out.println(gc.cardContainers.keySet());
-                    gc.cardContainers.get("player1").isTurn = true;
                     gc.cardContainers.put("dealer", new CardContainer(0));
                     return "{\"Shuffled\":\"false\"}";
                 case "deal":
@@ -239,8 +232,6 @@ public class App {
 
                     if(gc.cardContainers.get(hand).isTurn) {
                         gc.cardContainers.get(hand).isTurn = false;
-//                        keyset = gc.cardContainers.keySet();
-//                        keyArr = keyset.toArray(new String[0]);
                         int index = handOrder.indexOf(hand)+1;
                         if(index>=handOrder.size()){
                             gc.cardContainers.get("dealer").isTurn=true;
@@ -248,19 +239,6 @@ public class App {
                         else{
                             gc.cardContainers.get(handOrder.get(index)).isTurn=true;
                         }
-//                        int findIndex = 2; //Starts at 2 to skip deck and discard hands
-//                        while (findIndex != keyArr.length) {
-//                            if (keyArr[findIndex].equals(hand)) {
-//                                findIndex++;
-//                                break;
-//                            }
-//                            findIndex++;
-//                        }
-//                        if (findIndex >= keyArr.length) {
-//                            findIndex -= keyArr.length; //Circle back around to the first hand
-//                            findIndex += 2; //skip deck and discard
-//                        }
-//                        gc.cardContainers.get(keyArr[findIndex]).isTurn = true;
                         break;
                     }
                     return "{\"Error\":\"NotYourTurn\"}";
@@ -269,7 +247,7 @@ public class App {
                 case "checkIfTurn":
                     hand = ctx.form("hand").value();
                     if (gc.cardContainers.get(hand).isTurn) {
-                        return "{\"isTurn\":\"true\"}";
+                        return "{\"isTurn\":\"true\",\"roundActive\":\"+"+gc.roundActive+"\"}";
                     }
                     if (hand.equals("player1") && gc.cardContainers.get("dealer").isTurn) {
                         CardContainer dealer = gc.cardContainers.get("dealer");
@@ -282,6 +260,13 @@ public class App {
                                 score += 11;
                             } else
                                 score += val;
+                        }
+                        while (aceCount != 0) {
+                            if (score > 21) {
+                                score -= 10;
+                                aceCount -= 1;
+                            } else
+                                break;
                         }
                         while (score <= 16) {
                             if (gc.cardContainers.get("deck").cards.isEmpty()) {
@@ -344,7 +329,7 @@ public class App {
                             return "{\"WinOrLose\":\"Tie\",\"PlayerScore\":\""+playerScore+"\",\"DealerScore\":\""+dealerScore+"\"}";
                         }
                     }
-                    return "{\"isTurn\":\"false\"}";
+                    return "{\"isTurn\":\"false\",\"roundActive\":\"true\"}";
                 case "showCards":
                     keyset = gc.cardContainers.keySet();
                     keyArr = keyset.toArray(new String[0]);
@@ -407,6 +392,9 @@ class CardContainer {
     /** A function that randomly shuffles the card container **/
     void shuffle() {
         Collections.shuffle(cards);
+        for(Card card:cards){
+            card.isFaceUp=false;
+        }
     }
 
     /** A function that adds a card to the container **/
